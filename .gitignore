@@ -1,2 +1,5 @@
 output
 .psc-package
+.spago
+.psc-ide-port
+.purs-repl

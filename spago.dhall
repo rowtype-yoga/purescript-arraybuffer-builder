@@ -3,7 +3,14 @@ Welcome to a Spago project!
 You can edit this file as you like.
 -}
 { name = "purescript-easy-nix-example"
-, dependencies = [ "console", "effect", "prelude", "psci-support" ]
+, dependencies =
+  [ "console"
+  , "effect"
+  , "prelude"
+  , "psci-support"
+  , "arraybuffer-types"
+  , "arraybuffer"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }

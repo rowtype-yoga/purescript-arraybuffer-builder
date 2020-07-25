@@ -1,9 +1,11 @@
--- | `ArrayBuffer` serialization primitives. (Not typeclass-based.)
--- |
--- | Provides a `Builder` monoid which is roughly equivalent to the
--- |
--- | Provides a `PutM` monad which is roughly equivalent to `PutM` from the
--- | Haskell __binary__ library.
+-- | `ArrayBuffer` serialization primitives in the “builder monad” style.
+-- | An API on top of
+-- | [`Data.ArrayBuffer.ArrayBuffer`](https://pursuit.purescript.org/packages/purescript-arraybuffer/docs/Data.ArrayBuffer.ArrayBuffer)
+-- | which provides a `Builder` monoid and a `PutM` monad which are roughly
+-- | equivalent to the Haskell
+-- | [`Data.Binary.Put`](https://hackage.haskell.org/package/binary/docs/Data-Binary-Put.html)
+-- | module.
+-- | This library defines no typeclasses.
 -- |
 -- | See purescript-parsing-dataview for deserialization.
 -- |
@@ -13,35 +15,67 @@
 -- |
 -- | ## Serialize an integer
 -- |
--- | Create a two-byte `ArrayBuffer` which contains the number *-2* encoded as big-endian 16-bit two's-complement.
+-- | Create a two-byte `buf :: ArrayBuffer` which contains the number *-2* encoded as big-endian 16-bit two’s-complement.
 -- | ```purescript
 -- | buf <- execPut $ putInt32be (-2)
 -- | ```
 -- |
--- | ## Serialize a UTF8 string
+-- | ## Serialize a `String` as UTF8
 -- |
--- | Create an `ArrayBuffer` which contains a `String` encoded as UTF8 in a way that's compatible
--- | with the
--- | [`Binary.Put.putStringUtf8`](https://hackage.haskell.org/package/binary-0.8.7.0/docs/Data-Binary-Put.html#v:putStringUtf8)
+-- | Create a `buf :: ArrayBuffer` which contains a `String` encoded as UTF8 with a length prefix in a
+-- | way that's compatible with the
+-- | [`Binary.Put.putStringUtf8`](https://hackage.haskell.org/package/binary/docs/Data-Binary-Put.html#v:putStringUtf8)
 -- | function from the Haskell
--- | [__binary__](https://hackage.haskell.org/package/bytestring-0.10.10.0/docs/Data-ByteString-Builder-Prim.html#v:primMapListBounded)
+-- | [__binary__](https://hackage.haskell.org/package/binary)
 -- | library.
--- | Uses [`Data.TextEncoding.encodeUtf8`](https://pursuit.purescript.org/packages/purescript-text-encoding/1.0.0/docs/Data.TextEncoding#v:encodeUtf8).
+-- | Uses [`Data.TextEncoding.encodeUtf8`](https://pursuit.purescript.org/packages/purescript-text-encoding/docs/Data.TextEncoding#v:encodeUtf8).
 -- | ```purescript
 -- | buf <- execPut $ do
--- |   stringbuf <- = Data.ArrayBuffer.Typed.buffer $ encodeUtf8 "ACAB"
--- |   -- Adds a 64-bit length prefix for the length of the utf8 string, in bytes
+-- |   let stringbuf = Data.ArrayBuffer.Typed.buffer $ Data.TextEncoding.encodeUtf8 "Black Lives Matter"
+-- |   -- Put a 64-bit big-endian length prefix for the length of the utf8 string, in bytes.
 -- |   putUint32be 0
--- |   putUint32be $ Data.ArrayBuffer.byteLength stringbuf
+-- |   putUint32be $ Data.Uint.fromInt $ Data.ArrayBuffer.byteLength stringbuf
 -- |   putArrayBuffer stringbuf
 -- | ```
-
+-- |
+-- | ## Serialize an `Array Int`
+-- |
+-- | Create a `buf :: ArrayBuffer` which encodes an `Array Int` with a length prefix in a
+-- | way that's compatible with the
+-- | [`Binary` instance for `[Int32]`](https://hackage.haskell.org/package/binary/docs/Data-Binary.html#t:Binary)
+-- | from the Haskell
+-- | [__binary__](https://hackage.haskell.org/package/binary)
+-- | library.
+-- | ```purescript
+-- | let x = [1,2,3] :: Array Int
+-- | buf <- execPut $
+-- |   -- Put a 64-bit big-endian length prefix for the length of the array, in bytes.
+-- |   putUint32be 0
+-- |   putUint32be $ Data.Uint.fromInt $ Data.Array.length x
+-- |   traverse_ putInt32be x
+-- | ```
 module Build
 ( Builder
 , PutM
 , Put
+, execBuilder
 , execPutM
 , execPut
+, putArrayBuffer
+, putUint8
+, putInt8
+, putUint16be
+, putUint16le
+, putInt16be
+, putInt16le
+, putUint32be
+, putUint32le
+, putInt32be
+, putInt32le
+, putFloat32be
+, putFloat32le
+, putFloat64be
+, putFloat64le
 )
 where
 
@@ -49,6 +83,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Data.UInt (UInt)
+import Data.Float32 (Float32)
 import Data.Maybe (Maybe(..))
 import Control.Monad.Writer.Trans (WriterT, execWriterT, tell)
 
@@ -92,7 +127,7 @@ type Put = PutM Effect
 -- |
 -- |
 -- | If a Builder is built entirely by `snoc`ing, it will look like a
--- | left-only tree, a.k.a. a linked list.
+-- | left-only binary tree, a.k.a. a linked list.
 -- |
 -- | ```
 -- |            ⬤
@@ -126,6 +161,21 @@ type Put = PutM Effect
 -- | leaves, and therefore I think has an *O(n log(n))* fold. This `Builder`
 -- | has an *O(n)* fold.
 -- |
+-- | We hope that this implementation is fairly fast, but we
+-- | haven't chosen this implementation because it's fast, we've chosen
+-- | this implementation because it's simple. This library provides basic
+-- | ArrayBuffer serialization with the familar “put monad” style.
+-- | The only currently existing Purescript libary which does ArrayBuffer
+-- | serialization is
+-- | https://pursuit.purescript.org/packages/purescript-arraybuffer-class
+-- | , and that library is heavily typeclass-based and designed
+-- | for compatibility with the Haskell cereal library.
+-- | If someone wants to create a fast Purescript ArrayBuffer serialization
+-- | library, then they can benchmark against this one to prove that the new
+-- | one is fast.
+-- |
+-- | One relatively cheap and simple performance improvement for this library would be to
+-- | remove the Null constructor of Builder and instead use Javascript nulls.
 data Builder
   = Node Builder ArrayBuffer Builder
   | Null
@@ -150,7 +200,8 @@ foldl :: forall b. (b -> ArrayBuffer -> b) -> b -> Builder -> b
 foldl f a Null = a
 foldl f a (Node l x r) = foldl f (f (foldl f a l) x) r
 
--- | foldM : "Note this function is not generally stack-safe..." ???
+-- | Monomorphic foldM copied from
+-- | https://pursuit.purescript.org/packages/purescript-foldable-traversable/4.1.1/docs/Data.Foldable#v:foldM
 foldM :: forall b m. (Monad m) => (b -> ArrayBuffer -> m b) -> b -> Builder -> m b
 foldM f a0 = foldl (\ma b -> ma >>= flip f b) (pure a0)
 
@@ -161,10 +212,9 @@ singleton buf = Node Null buf Null
 snoc :: Builder -> ArrayBuffer -> Builder
 snoc bs x = Node bs x Null
 
--- | Run a computation to build an `ArrayBuffer` in any `MonadEffect`.
-execPutM :: forall m. (MonadEffect m) => PutM m Unit -> m ArrayBuffer
-execPutM putmonad = do
-  bldr <- execWriterT putmonad
+-- | Build a single `ArrayBuffer` from a `Builder`.
+execBuilder :: forall m. (MonadEffect m) => Builder -> m ArrayBuffer
+execBuilder bldr = do
   let buflen = foldl (\b a -> b + AB.byteLength a) 0 bldr
   -- Allocate the final ArrayBuffer
   buf <- liftEffect $ AB.empty buflen
@@ -173,15 +223,19 @@ execPutM putmonad = do
   -- both ArrayBuffers as ArrayView (Typed Array).
   newview <- liftEffect (AT.whole buf :: Effect Uint8Array)
   _ <- foldM
-      ( \offset a -> do
-          let offset' = offset + AB.byteLength a
-          aview <- liftEffect (AT.whole a :: Effect Uint8Array)
-          _ <- liftEffect $ AT.setTyped newview (Just offset') aview
-          pure offset'
-      ) 0 bldr
+    ( \offset a -> do
+        let offset' = offset + AB.byteLength a
+        aview <- liftEffect (AT.whole a :: Effect Uint8Array)
+        _ <- liftEffect $ AT.setTyped newview (Just offset') aview
+        pure offset'
+    ) 0 bldr
   pure buf
 
--- | Run a computation to build an `ArrayBuffer` in the `Effect` monad.
+-- | Monad computation to build an `ArrayBuffer` in any `MonadEffect`.
+execPutM :: forall m. (MonadEffect m) => PutM m Unit -> m ArrayBuffer
+execPutM = execBuilder <=< execWriterT
+
+-- | Monad computation to build an `ArrayBuffer` in the `Effect` monad.
 execPut :: Put Unit -> Effect ArrayBuffer
 execPut = execPutM
 
@@ -194,6 +248,13 @@ putUint8 :: forall m. (MonadEffect m) => UInt -> PutM m Unit
 putUint8 x = do
   buf <- liftEffect $ AB.empty 1
   _ <- liftEffect $ DV.setUint8 (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append an 8-bit two’s-complement signed integer (char) to the builder.
+putInt8 :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt8 x = do
+  buf <- liftEffect $ AB.empty 1
+  _ <- liftEffect $ DV.setInt8 (DV.whole buf) 0 x
   tell $ singleton buf
 
 -- | Append a 16-bit big-endian unsigned integer to the builder.
@@ -210,16 +271,72 @@ putUint16le x = do
   _ <- liftEffect $ DV.setUint16le (DV.whole buf) 0 x
   tell $ singleton buf
 
--- | Append a 16-bit big-endian signed integer to the builder.
+-- | Append a 16-bit big-endian two’s-complement signed integer to the builder.
 putInt16be :: forall m. (MonadEffect m) => Int -> PutM m Unit
 putInt16be x = do
   buf <- liftEffect $ AB.empty 2
   _ <- liftEffect $ DV.setInt16be (DV.whole buf) 0 x
   tell $ singleton buf
 
--- | Append a 16-bit little-endian signed integer to the builder.
+-- | Append a 16-bit little-endian two’s-complement signed integer to the builder.
 putInt16le :: forall m. (MonadEffect m) => Int -> PutM m Unit
 putInt16le x = do
   buf <- liftEffect $ AB.empty 2
   _ <- liftEffect $ DV.setInt16le (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 32-bit big-endian unsigned integer to the builder.
+putUint32be :: forall m. (MonadEffect m) => UInt -> PutM m Unit
+putUint32be x = do
+  buf <- liftEffect $ AB.empty 4
+  _ <- liftEffect $ DV.setUint32be (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 32-bit little-endian unsigned integer to the builder.
+putUint32le :: forall m. (MonadEffect m) => UInt -> PutM m Unit
+putUint32le x = do
+  buf <- liftEffect $ AB.empty 4
+  _ <- liftEffect $ DV.setUint32le (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 32-bit big-endian two’s-complement signed integer to the builder.
+putInt32be :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt32be x = do
+  buf <- liftEffect $ AB.empty 4
+  _ <- liftEffect $ DV.setInt32be (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 32-bit little-endian two’s-complement signed integer to the builder.
+putInt32le :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt32le x = do
+  buf <- liftEffect $ AB.empty 4
+  _ <- liftEffect $ DV.setInt32le (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 32-bit big-endian IEEE single-precision float to the builder.
+putFloat32be :: forall m. (MonadEffect m) => Float32 -> PutM m Unit
+putFloat32be x = do
+  buf <- liftEffect $ AB.empty 4
+  _ <- liftEffect $ DV.setFloat32be (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 32-bit little-endian IEEE single-precision float to the builder.
+putFloat32le :: forall m. (MonadEffect m) => Float32 -> PutM m Unit
+putFloat32le x = do
+  buf <- liftEffect $ AB.empty 4
+  _ <- liftEffect $ DV.setFloat32le (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 64-bit big-endian IEEE double-precision float to the builder.
+putFloat64be :: forall m. (MonadEffect m) => Number -> PutM m Unit
+putFloat64be x = do
+  buf <- liftEffect $ AB.empty 8
+  _ <- liftEffect $ DV.setFloat64be (DV.whole buf) 0 x
+  tell $ singleton buf
+
+-- | Append a 64-bit little-endian IEEE double-precision float to the builder.
+putFloat64le :: forall m. (MonadEffect m) => Number -> PutM m Unit
+putFloat64le x = do
+  buf <- liftEffect $ AB.empty 8
+  _ <- liftEffect $ DV.setFloat64le (DV.whole buf) 0 x
   tell $ singleton buf

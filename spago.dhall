@@ -4,8 +4,7 @@ You can edit this file as you like.
 -}
 { name = "purescript-easy-nix-example"
 , dependencies =
-  [ "prelude"
-  , "arraybuffer-types"
+  [ "arraybuffer-types"
   , "arraybuffer"
   ]
 , packages = ./packages.dhall

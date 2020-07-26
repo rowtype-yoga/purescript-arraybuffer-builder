@@ -392,7 +392,7 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 -- | * *O(1)* monoid append
 -- | * *O(n)* fold
 -- |
--- | Our `Builder` monoid implementation is an unbalanced binary tree.
+-- | Our `Builder` implementation is an unbalanced binary tree.
 -- |
 -- | For monoid `append`, what we actually get is *O(1)* when either the
 -- | left or right tree is a singleton. If that's not true, then in the
@@ -439,8 +439,7 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 -- |
 -- | We hope that this implementation is fairly fast, but we
 -- | haven't chosen this implementation because it's fast, we've chosen
--- | this implementation because it's simple. This library provides basic
--- | ArrayBuffer serialization with the familar “put monad” style.
+-- | this implementation because it's simple.
 -- | The only currently existing Purescript libary which does ArrayBuffer
 -- | serialization is
 -- | https://pursuit.purescript.org/packages/purescript-arraybuffer-class
@@ -452,3 +451,13 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 -- |
 -- | One relatively cheap and simple performance improvement for this library would be to
 -- | remove the Null constructor of `Builder` and instead use Javascript nulls.
+-- |
+-- | In the longer term, it might make sense to try to change the Builder so
+-- | that it works like the
+-- | https://hackage.haskell.org/package/bytestring/docs/Data-ByteString-Builder.html
+-- |
+-- | Here are some benchmarks of different Haskell ByteString builders
+-- | https://github.com/haskell-perf/strict-bytestring-builders
+-- |
+-- | We've tried to design the API for this library with minimal assumptions,
+-- | so that if we want to change the Builder implementation later then we can.

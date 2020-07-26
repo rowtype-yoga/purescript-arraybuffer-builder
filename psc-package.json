@@ -1,5 +1,5 @@
 {
-  "name": "purescript-easy-nix-example",
+  "name": "purescript-arraybuffer-builder",
   "set": "psc-0.13.8",
   "source": "https://github.com/purescript/package-sets.git",
   "depends": [

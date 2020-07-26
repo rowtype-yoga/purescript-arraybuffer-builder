@@ -2,7 +2,7 @@
 Welcome to a Spago project!
 You can edit this file as you like.
 -}
-{ name = "purescript-easy-nix-example"
+{ name = "purescript-arraybuffer-builder"
 , dependencies =
   [ "arraybuffer-types"
   , "arraybuffer"

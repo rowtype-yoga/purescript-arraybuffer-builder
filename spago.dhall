@@ -1,6 +1,4 @@
 {-
-Welcome to a Spago project!
-You can edit this file as you like.
 -}
 { name = "purescript-arraybuffer-builder"
 , dependencies =
@@ -9,4 +7,6 @@ You can edit this file as you like.
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
+, license = "MIT"
+, repository = "https://github.com/jamesdbrock/purescript-arraybuffer-builder"
 }

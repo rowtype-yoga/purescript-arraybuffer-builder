@@ -5,10 +5,16 @@
 -- | [`Data.Binary.Put`](https://hackage.haskell.org/package/binary/docs/Data-Binary-Put.html)
 -- | module.
 -- |
--- | This library defines no typeclasses.
+-- | This library defines no typeclasses. Typeclass-based
+-- | serialization/deserialization generally assumes that we are round-tripping
+-- | some data structures out to storage and then back into our program.
+-- | This library is designed for the case that we are serializing some data
+-- | to be sent to another program which expects a certain serialization format
+-- | that we don't control.
 -- |
 -- | ## Deserialization
 -- |
+-- | This module is only for writing `ArrayBuffer`s, not reading them.
 -- | See
 -- | [__purescript-parsing-dataview__](https://pursuit.purescript.org/packages/purescript-parsing-dataview/)
 -- | for a way to deserialize from `ArrayBuffer` back to Purescript data.
@@ -440,11 +446,6 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 -- | We hope that this implementation is fairly fast, but we
 -- | haven't chosen this implementation because it's fast, we've chosen
 -- | this implementation because it's simple.
--- | The only currently existing Purescript libary which does ArrayBuffer
--- | serialization is
--- | https://pursuit.purescript.org/packages/purescript-arraybuffer-class
--- | , and that library is heavily typeclass-based and designed
--- | for compatibility with the Haskell cereal library.
 -- | If someone wants to create a fast Purescript ArrayBuffer serialization
 -- | library, then they can benchmark against this one to prove that the new
 -- | one is fast.
@@ -461,3 +462,7 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 -- |
 -- | We've tried to design the API for this library with minimal assumptions,
 -- | so that if we want to change the Builder implementation later then we can.
+-- |
+-- | Alternatives
+-- | https://pursuit.purescript.org/packages/purescript-node-buffer
+-- | https://pursuit.purescript.org/packages/purescript-arraybuffer-class

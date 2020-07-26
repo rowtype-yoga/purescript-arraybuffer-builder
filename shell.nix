@@ -15,5 +15,6 @@ pkgs.mkShell {
     easy-ps.purs-0_13_8
     easy-ps.psc-package
     easy-ps.spago
+    pkgs.nodePackages.bower
   ];
 }

@@ -1,6 +1,6 @@
 {-
 -}
-{ name = "purescript-arraybuffer-builder"
+{ name = "arraybuffer-builder"
 , dependencies =
   [ "arraybuffer-types"
   , "arraybuffer"

@@ -1,0 +1,20 @@
+{
+    "name": "purescript-arraybuffer-builder",
+    "license": [
+        "MIT"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jamesdbrock/purescript-arraybuffer-builder"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-arraybuffer": "^v10.0.2",
+        "purescript-arraybuffer-types": "^v2.0.0"
+    }
+}

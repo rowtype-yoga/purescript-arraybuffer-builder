@@ -4,3 +4,4 @@ output
 .psc-ide-port
 .purs-repl
 generated-docs
+bower_components

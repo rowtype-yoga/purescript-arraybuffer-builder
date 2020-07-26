@@ -5,3 +5,5 @@ output
 .purs-repl
 generated-docs
 bower_components
+node_modules
+package-lock.json

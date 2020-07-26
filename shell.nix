@@ -18,5 +18,9 @@ pkgs.mkShell {
     pkgs.nodejs-13_x
     pkgs.nodePackages.bower
     # pkgs.nodePackages.pulp
+    #
+    # The pulp nix derivation doesn't work, so to run pulp:
+    # $ npm install pulp
+    # $ node node_modules/pulp/index.js
   ];
 }

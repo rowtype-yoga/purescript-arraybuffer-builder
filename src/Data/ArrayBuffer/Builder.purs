@@ -130,8 +130,8 @@ type Put = PutM Effect
 -- |
 -- | ### Left-associative `<>>` append operator
 -- |
--- | __TL;DR;__ Don't use the `Builder` monoid directly in your code, use the
--- | `PutM` monad with do-notation instead.
+-- | __TL;DR__ You probably don't want to use the `Builder` monoid directly
+-- | in your code, it’s better to use the `PutM` monad with do-notation instead.
 -- |
 -- | The `Builder` monoid in this library is efficient when we `snoc` single
 -- | items onto the end of it, or when we only `cons` single items to the

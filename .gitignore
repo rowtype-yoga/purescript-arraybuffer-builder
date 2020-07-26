@@ -3,3 +3,4 @@ output
 .spago
 .psc-ide-port
 .purs-repl
+generated-docs

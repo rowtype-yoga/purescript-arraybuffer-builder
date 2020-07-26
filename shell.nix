@@ -23,4 +23,5 @@ pkgs.mkShell {
     # $ npm install pulp
     # $ node node_modules/pulp/index.js
   ];
+  LC_ALL = "C.UTF-8"; # https://github.com/purescript/spago/issues/507
 }

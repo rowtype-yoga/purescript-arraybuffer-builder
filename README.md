@@ -93,8 +93,11 @@ do
   arraybuffer <- execPut $ putArrayInt32 [1,2,3]
 ```
 
+## References
 
-## Alternative packages for `ArrayBuffer` serialization
+* [MDN `ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
 
-* https://pursuit.purescript.org/packages/purescript-node-buffer
-* https://pursuit.purescript.org/packages/purescript-arraybuffer-class
+## Alternative packages for serializing to an `ArrayBuffer`
+
+* [__purescript-node-buffer__](https://pursuit.purescript.org/packages/purescript-node-buffer)
+* [__purescript-arraybuffer-class__](https://pursuit.purescript.org/packages/purescript-arraybuffer-class)

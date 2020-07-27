@@ -4,6 +4,11 @@
 -- |
 -- | Writing to an `ArrayBuffer` is an `Effect`ful activity, so most
 -- | functions in this module must be run in a `MonadEffect` context.
+-- |
+-- | For operations for working with `ArrayBuffer`, see
+-- | module
+-- | [`Data.ArrayBuffer.ArrayBuffer`](https://pursuit.purescript.org/packages/purescript-arraybuffer/docs/Data.ArrayBuffer.ArrayBuffer)
+-- | in package __purescript-arraybuffer__.
 module Data.ArrayBuffer.Builder
 ( PutM
 , Put
@@ -396,3 +401,6 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 --
 -- We've tried to design the API for this library with minimal assumptions,
 -- so that if we want to change the Builder implementation later then we can.
+--
+-- Another way this could go:
+-- https://kodimensional.dev/posts/2019-03-25-comonadic-builders

@@ -22,13 +22,6 @@ This package is designed for the case in which we are serializing some data
 to be sent to another program which expects a serialization format
 that we don't control.
 
-## Deserialization
-
-This package is only for writing `ArrayBuffer`s, not reading them.
-See
-[__purescript-parsing-dataview__](https://pursuit.purescript.org/packages/purescript-parsing-dataview/)
-for a way to deserialize from `ArrayBuffer` back to Purescript data.
-
 ## Usage Examples
 
 All `ArrayBuffer` building must occur in `Effect`.
@@ -73,7 +66,7 @@ putStringUtf8 s = do
   putArrayBuffer stringbuf
 
 do
-  arraybuffer <- execPut $ putStringUtf8 "ACAB"
+  arraybuffer <- execPut $ putStringUtf8 "BLM"
 ```
 
 ### Serialize an `Array Int`
@@ -95,6 +88,13 @@ putArrayInt32 xs = do
 do
   arraybuffer <- execPut $ putArrayInt32 [1,2,3]
 ```
+
+## Deserialization
+
+This package is only for writing `ArrayBuffer`s, not reading them.
+See
+[__purescript-parsing-dataview__](https://pursuit.purescript.org/packages/purescript-parsing-dataview/)
+for a way to deserialize from `ArrayBuffer` back to Purescript data.
 
 ## References
 

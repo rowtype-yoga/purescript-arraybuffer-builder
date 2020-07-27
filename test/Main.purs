@@ -56,3 +56,27 @@ main = do
     b3 <- encodeInt8 3
     b4 <- encodeInt8 4
     pure $ singleton b1 <> (singleton b2 <> singleton b3) <> singleton b4
+
+  buildTest "Test 6" [1,2,3,4,5,6,7,8] $ do
+    b1 <- encodeInt8 1
+    b2 <- encodeInt8 2
+    b3 <- encodeInt8 3
+    b4 <- encodeInt8 4
+    b5 <- encodeInt8 5
+    b6 <- encodeInt8 6
+    b7 <- encodeInt8 7
+    b8 <- encodeInt8 8
+    pure $ singleton b1 <> (singleton b2 <> singleton b3) <> singleton b4
+         <> singleton b5 <> (singleton b6 <> singleton b7) <> singleton b8
+
+  buildTest "Test 7" [1,2,3,4,5,6,7,8] $ do
+    b1 <- encodeInt8 1
+    b2 <- encodeInt8 2
+    b3 <- encodeInt8 3
+    b4 <- encodeInt8 4
+    b5 <- encodeInt8 5
+    b6 <- encodeInt8 6
+    b7 <- encodeInt8 7
+    b8 <- encodeInt8 8
+    pure $ singleton b1 <> (singleton b2 <> singleton b3) <> (singleton b4
+         <> singleton b5) <> (singleton b6 <> singleton b7) <> singleton b8

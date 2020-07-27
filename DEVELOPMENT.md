@@ -34,5 +34,6 @@ The test dependencies are specified seperately in `test.dhall`.
 
 ```
 [nix-shell:]$ spago bump-version --no-dry-run major
+[nix-shell:]$ npm install pulp
 [nix-shell:]$ node node_modules/pulp/index.js publish
 ```

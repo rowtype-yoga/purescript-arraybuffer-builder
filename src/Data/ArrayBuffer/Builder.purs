@@ -151,10 +151,9 @@ execBuilder bldr = do
   newview <- liftEffect (AT.whole buf :: Effect Uint8Array)
   _ <- foldM
     ( \offset a -> do
-        let offset' = offset + AB.byteLength a
         aview <- liftEffect (AT.whole a :: Effect Uint8Array)
-        _ <- liftEffect $ AT.setTyped newview (Just offset') aview
-        pure offset'
+        _ <- liftEffect $ AT.setTyped newview (Just offset) aview
+        pure $ offset + AB.byteLength a
     ) 0 bldr
   pure buf
 

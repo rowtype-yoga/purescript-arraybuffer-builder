@@ -10,7 +10,9 @@ equivalent to types of the same name in the Haskell
 [`Data.Binary.Put`](https://hackage.haskell.org/package/binary/docs/Data-Binary-Put.html)
 module.
 
-This package defines no typeclasses. Typeclass-based
+This package defines
+[no typeclasses](http://code.slipthrough.net/2018/03/13/thoughts-on-typeclass-codecs/).
+Typeclass-based
 serialization/deserialization generally assumes that we are round-tripping
 some data structures out to storage and then back into our program.
 This package is designed for the case in which we are serializing some data
@@ -90,3 +92,9 @@ putArrayInt32 xs = do
 do
   arraybuffer <- execPut $ putArrayInt32 [1,2,3]
 ```
+
+
+## Alternative packages for `ArrayBuffer` serialization
+
+* https://pursuit.purescript.org/packages/purescript-node-buffer
+* https://pursuit.purescript.org/packages/purescript-arraybuffer-class

@@ -325,77 +325,73 @@ putFloat64le :: forall m. (MonadEffect m) => Number -> PutM m Unit
 putFloat64le = putArrayBuffer <=< encodeFloat64le
 
 
--- | ## Implementation Details
--- |
--- | We want our `Builder` to be a data structure with
--- | * *O(1)* monoid append
--- | * *O(n)* fold
--- |
--- | Our `Builder` implementation is an unbalanced binary tree.
--- |
--- | For monoid `append`, what we actually get is *O(1)* when either the
--- | left or right tree is a singleton. If that's not true, then in the
--- | unlikely worst case `append` might be *O(n)*.
--- |
--- | `Builder` is optimized what we consider to be normal usage, that is,
--- | `snoc`ing singleton elements to the end of the `Builder`.
--- |
--- | If a Builder is built entirely by `snoc`ing, it will look like a
--- | left-only binary tree, a.k.a. a linked list.
--- |
--- | ```
--- |            ④
--- |           ╱
--- |          ③
--- |         ╱
--- |        ②
--- |       ╱
--- |      ①
--- | ```
--- |
--- | If two of these `snoc`-built trees are `append`ed, then the new tree
--- | will look like
--- |
--- | ```
--- |            ④
--- |           ╱  ╲
--- |          ③  ⑧
--- |         ╱   ╱
--- |        ②  ⑦
--- |       ╱   ╱
--- |      ①  ⑥
--- |         ╱
--- |        ⑤
--- | ```
--- |
--- | This is all similar to
--- | [__bytestring-tree-builder__](https://hackage.haskell.org/package/bytestring-tree-builder)
--- | , except that the
--- | [`Tree`](https://hackage.haskell.org/package/bytestring-tree-builder-0.2.7.3/docs/src/ByteString.TreeBuilder.Tree.html#Tree)
--- | structure in __bytestring-tree-builder__ only carries values in its
--- | leaves, which is how it achieves *O(1)* appending, at the cost of
--- | a higher coefficient time factor on the fold.
--- |
--- | We hope that this implementation is fairly fast, but we
--- | haven't chosen this implementation because it's fast, we've chosen
--- | this implementation because it's simple.
--- | If someone wants to create a fast Purescript ArrayBuffer serialization
--- | library, then they can benchmark against this one to prove that the new
--- | one is fast.
--- |
--- | One relatively cheap and simple performance improvement for this library would be to
--- | remove the Null constructor of `Builder` and instead use Javascript nulls.
--- |
--- | In the longer term, it might make sense to try to change the Builder so
--- | that it works like the
--- | https://hackage.haskell.org/package/bytestring/docs/Data-ByteString-Builder.html
--- |
--- | Here are some benchmarks of different Haskell ByteString builders
--- | https://github.com/haskell-perf/strict-bytestring-builders
--- |
--- | We've tried to design the API for this library with minimal assumptions,
--- | so that if we want to change the Builder implementation later then we can.
--- |
--- | Alternatives
--- | https://pursuit.purescript.org/packages/purescript-node-buffer
--- | https://pursuit.purescript.org/packages/purescript-arraybuffer-class
+-- ## Implementation Details
+--
+-- We want our `Builder` to be a data structure with
+-- * *O(1)* monoid append
+-- * *O(n)* fold
+--
+-- Our `Builder` implementation is an unbalanced binary tree.
+--
+-- For monoid `append`, what we actually get is *O(1)* when either the
+-- left or right tree is a singleton. If that's not true, then in the
+-- unlikely worst case `append` might be *O(n)*.
+--
+-- `Builder` is optimized what we consider to be normal usage, that is,
+-- `snoc`ing singleton elements to the end of the `Builder`.
+--
+-- If a Builder is built entirely by `snoc`ing, it will look like a
+-- left-only binary tree, a.k.a. a linked list.
+--
+-- ```
+--            ④
+--           ╱
+--          ③
+--         ╱
+--        ②
+--       ╱
+--      ①
+-- ```
+--
+-- If two of these `snoc`-built trees are `append`ed, then the new tree
+-- will look like
+--
+-- ```
+--            ④
+--           ╱  ╲
+--          ③  ⑧
+--         ╱   ╱
+--        ②  ⑦
+--       ╱   ╱
+--      ①  ⑥
+--         ╱
+--        ⑤
+-- ```
+--
+-- This is all similar to
+-- [__bytestring-tree-builder__](https://hackage.haskell.org/package/bytestring-tree-builder)
+-- , except that the
+-- [`Tree`](https://hackage.haskell.org/package/bytestring-tree-builder-0.2.7.3/docs/src/ByteString.TreeBuilder.Tree.html#Tree)
+-- structure in __bytestring-tree-builder__ only carries values in its
+-- leaves, which is how it achieves *O(1)* appending, at the cost of
+-- a higher coefficient time factor on the fold.
+--
+-- We hope that this implementation is fairly fast, but we
+-- haven't chosen this implementation because it's fast, we've chosen
+-- this implementation because it's simple.
+-- If someone wants to create a fast Purescript ArrayBuffer serialization
+-- library, then they can benchmark against this one to prove that the new
+-- one is fast.
+--
+-- One relatively cheap and simple performance improvement for this library would be to
+-- remove the Null constructor of `Builder` and instead use Javascript nulls.
+--
+-- In the longer term, it might make sense to try to change the Builder so
+-- that it works like the
+-- https://hackage.haskell.org/package/bytestring/docs/Data-ByteString-Builder.html
+--
+-- Here are some benchmarks of different Haskell ByteString builders
+-- https://github.com/haskell-perf/strict-bytestring-builders
+--
+-- We've tried to design the API for this library with minimal assumptions,
+-- so that if we want to change the Builder implementation later then we can.

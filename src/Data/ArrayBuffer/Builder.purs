@@ -64,12 +64,13 @@ import Data.UInt (UInt)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 
--- | The `PutM` monad is a Writer transformer monad which
--- | [gives us access to do-notation](https://wiki.haskell.org/Do_notation_considered_harmful#Library_design)
--- | for building `ArrayBuffer`s.
+-- | The `PutM` monad is a `WriterT Builder` transformer monad which
+-- | gives us do-notation for the `Builder` monoid. The base monad must be
+-- | a `MonadEffect`.
 type PutM = WriterT Builder
 
--- | `Put` monad is the non-transformer version of `PutM`.
+-- | The `Put` monad is a `WriterT Builder Effect` monad which
+-- | gives us do-notation for the `Builder` monoid.
 type Put = PutM Effect
 
 -- | Monoidal builder for `ArrayBuffer`s.

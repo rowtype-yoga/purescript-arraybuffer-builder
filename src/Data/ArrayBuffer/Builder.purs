@@ -1,7 +1,9 @@
--- | `ArrayBuffer` serialization in the “builder monoid” style.
--- |
 -- | This module provides a `Builder` monoid and a `PutM` monad
--- | for building `ArrayBuffer`s. See the package README for usage examples.
+-- | for serializing `Data.ArrayBuffer.Types.ArrayBuffer`s.
+-- | See the package README for usage examples.
+-- |
+-- | Writing to an `ArrayBuffer` is an `Effect`ful activity, so most
+-- | functions in this module must be run in a `MonadEffect` context.
 module Data.ArrayBuffer.Builder
 ( PutM
 , Put

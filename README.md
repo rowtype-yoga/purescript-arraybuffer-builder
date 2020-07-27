@@ -1,5 +1,8 @@
 # purescript-arraybuffer-builder
 
+[![CI](https://github.com/jamesdbrock/purescript-arraybuffer-builder/workflows/CI/badge.svg?branch=master)](https://github.com/jamesdbrock/purescript-arraybuffer-builder/actions)
+[![Pursuit](http://pursuit.purescript.org/packages/purescript-arraybuffer-builder/badge)](http://pursuit.purescript.org/packages/purescript-arraybuffer-builder/)
+
 `ArrayBuffer` serialization in the “builder monoid” and “builder monad” style.
 In this style, we build up serialized data structures by `append`ing to
 a monoid in a Writer monad with do-notation. This style of serialization

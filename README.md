@@ -49,19 +49,17 @@ do
 
 ### Serialize a `String` as UTF8
 
-Encode a `String` as UTF8 with a length prefix in a
-way that's compatible with the
-[`Binary.Put.putStringUtf8`](https://hackage.haskell.org/package/binary/docs/Data-Binary-Put.html#v:putStringUtf8)
-function from the Haskell
-[__binary__](https://hackage.haskell.org/package/binary)
-library.
-Uses [`Data.TextEncoding.encodeUtf8`](https://pursuit.purescript.org/packages/purescript-text-encoding/docs/Data.TextEncoding#v:encodeUtf8).
+Encode a `String` as UTF8 with a length prefix.
+
+We give this as an example, rather than supporting it in the library, because
+it depends on
+[`Data.TextEncoding.encodeUtf8`](https://pursuit.purescript.org/packages/purescript-text-encoding/docs/Data.TextEncoding#v:encodeUtf8).
+
 ```purescript
 putStringUtf8 :: forall m. (MonadEffect m) => String -> PutM m Unit
 putStringUtf8 s = do
   let stringbuf = Data.ArrayBuffer.Typed.buffer $ Data.TextEncoding.encodeUtf8 s
-  -- Put a 64-bit big-endian length prefix for the length of the utf8 string, in bytes.
-  putUint32be 0
+  -- Put a 32-bit big-endian length prefix for the length of the utf8 string, in bytes.
   putUint32be $ Data.Uint.fromInt $ Data.ArrayBuffer.byteLength stringbuf
   putArrayBuffer stringbuf
 
@@ -77,6 +75,7 @@ way that's compatible with the
 from the Haskell
 [__binary__](https://hackage.haskell.org/package/binary)
 library.
+
 ```purescript
 putArrayInt32 :: forall m. (MonadEffect m) => Array Int -> PutM m Unit
 putArrayInt32 xs = do

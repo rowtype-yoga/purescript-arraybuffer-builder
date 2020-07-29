@@ -78,5 +78,5 @@ main = do
     b6 <- encodeInt8 6
     b7 <- encodeInt8 7
     b8 <- encodeInt8 8
-    pure $ singleton b1 <> (singleton b2 <> singleton b3) <> (singleton b4
-         <> singleton b5) <> (singleton b6 <> singleton b7) <> singleton b8
+    pure $ ((singleton b1 <> singleton b2) <> (singleton b3 <> singleton b4))
+         <> ((singleton b5 <> singleton b6) <> (singleton b7 <> singleton b8))

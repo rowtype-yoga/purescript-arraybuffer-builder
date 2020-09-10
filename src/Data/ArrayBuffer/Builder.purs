@@ -14,6 +14,7 @@ module Data.ArrayBuffer.Builder
 , Put
 , execPutM
 , execPut
+, subBuilder
 , putArrayBuffer
 , putUint8
 , putInt8
@@ -32,7 +33,9 @@ module Data.ArrayBuffer.Builder
 , Builder
 , (<>>)
 , execBuilder
+, length
 , singleton
+, cons
 , snoc
 , encodeUint8
 , encodeInt8
@@ -53,7 +56,7 @@ where
 
 import Prelude
 
-import Control.Monad.Writer.Trans (WriterT, execWriterT, tell)
+import Control.Monad.Writer.Trans (WriterT, execWriterT, tell, lift)
 import Data.ArrayBuffer.ArrayBuffer as AB
 import Data.ArrayBuffer.DataView as DV
 import Data.ArrayBuffer.Typed as AT
@@ -67,10 +70,12 @@ import Effect.Class (class MonadEffect, liftEffect)
 -- | The `PutM` monad is a `WriterT Builder` transformer monad which
 -- | gives us do-notation for the `Builder` monoid. The base monad must be
 -- | a `MonadEffect`.
+-- |
+-- | To append `Builder`s in this monad call `tell`, or any of the `put*`
+-- | functions in this module.
 type PutM = WriterT Builder
 
--- | The `Put` monad is a `WriterT Builder Effect` monad which
--- | gives us do-notation for the `Builder` monoid.
+-- | The `PutM` type reified to `Effect`, in other words `WriterT Builder Effect`.
 type Put = PutM Effect
 
 -- | Monoidal builder for `ArrayBuffer`s.
@@ -143,9 +148,17 @@ foldM f a0 = foldl (\ma b -> ma >>= flip f b) (pure a0)
 singleton :: ArrayBuffer -> Builder
 singleton buf = Node Null buf Null
 
--- | Add an `ArrayBuffer` to the end of the `Builder`. *O(1)*
+-- | Prepend an `ArrayBuffer` to the beginning of the `Builder`. *O(1)*
+cons :: ArrayBuffer -> Builder -> Builder
+cons x bs = Node Null x bs
+
+-- | Append an `ArrayBuffer` to the end of the `Builder`. *O(1)*
 snoc :: Builder -> ArrayBuffer -> Builder
 snoc bs x = Node bs x Null
+
+-- | Calculate the total byte length of the `Builder`. *O(n)*
+length :: Builder -> Int
+length bldr = foldl (\b a -> b + AB.byteLength a) 0 bldr
 
 -- | Build a single `ArrayBuffer` from a `Builder`. *O(n)*
 execBuilder :: forall m. (MonadEffect m) => Builder -> m ArrayBuffer
@@ -172,6 +185,28 @@ execPutM = execBuilder <=< execWriterT
 -- | Build an `ArrayBuffer` with do-notation. *O(n)*
 execPut :: Put Unit -> Effect ArrayBuffer
 execPut = execPutM
+
+-- | Build up a sub-`Builder` without `tell`ing it to the `Writer` yet.
+-- |
+-- | One case where we might want to call a `subBuilder` is when
+-- | serializing length-prefixed messages in some protocol. In that case,
+-- | we must serialize the message first, calculate the message length,
+-- | append the message length, and then append the message.
+-- |
+-- | In a `PutM` monad do-block, we can
+-- |
+-- |
+-- | ```
+-- | do
+-- |   messageBuilder <- subBuilder $ do
+-- |     putField1
+-- |     putField2
+-- |
+-- |   putInt32 $ length messageBuilder
+-- |   tell messageBuilder
+-- | ```
+subBuilder :: forall m. (MonadEffect m) => PutM m Unit -> PutM m Builder
+subBuilder = lift <<< execWriterT
 
 -- | Append an `ArrayBuffer` to the builder.
 putArrayBuffer :: forall m. (MonadEffect m) => ArrayBuffer -> PutM m Unit
@@ -405,3 +440,4 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 --
 -- Another way this could go:
 -- https://kodimensional.dev/posts/2019-03-25-comonadic-builders
+

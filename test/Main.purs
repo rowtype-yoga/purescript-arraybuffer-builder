@@ -7,6 +7,7 @@ import Data.UInt as UInt
 import Effect (Effect)
 import Test.Assert (assertEqual')
 import Data.ArrayBuffer.Builder
+import Control.Monad.Writer.Trans (tell)
 
 asBytes :: ArrayBuffer -> Effect (Array Int)
 asBytes x = do
@@ -80,3 +81,20 @@ main = do
     b8 <- encodeInt8 8
     pure $ ((singleton b1 <> singleton b2) <> (singleton b3 <> singleton b4))
          <> ((singleton b5 <> singleton b6) <> (singleton b7 <> singleton b8))
+
+  buildTest "Test 8" [1,2,3,4] $ do
+    b1 <- encodeInt8 1
+    b2 <- encodeInt8 2
+    b3 <- encodeInt8 3
+    b4 <- encodeInt8 4
+    pure $ (cons b1 (singleton b2)) <> (cons b3 (singleton b4))
+
+  putTest "Test 9" [1,2,2,3,4] $ do
+    x <- subBuilder $ do
+      putInt8 3
+      putInt8 4
+    putInt8 1
+    putInt8 2
+    putInt8 $ length x
+    tell x
+

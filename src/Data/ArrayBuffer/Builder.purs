@@ -202,7 +202,7 @@ execPut = execPutM
 -- |     putField1
 -- |     putField2
 -- |
--- |   putInt32 $ length messageBuilder
+-- |   putInt32be $ length messageBuilder
 -- |   tell messageBuilder
 -- | ```
 subBuilder :: forall m. (MonadEffect m) => PutM m Unit -> PutM m Builder

@@ -101,5 +101,6 @@ for a way to deserialize from `ArrayBuffer` back to Purescript data.
 
 ## Alternative packages for serializing to an `ArrayBuffer`
 
-* [__purescript-node-buffer__](https://pursuit.purescript.org/packages/purescript-node-buffer)
-* [__purescript-arraybuffer-class__](https://pursuit.purescript.org/packages/purescript-arraybuffer-class)
+* [__dynamic-buffers__](https://pursuit.purescript.org/packages/purescript-dynamic-buffers)
+* [__node-buffer__](https://pursuit.purescript.org/packages/purescript-node-buffer)
+* [__arraybuffer-class__](https://pursuit.purescript.org/packages/purescript-arraybuffer-class)

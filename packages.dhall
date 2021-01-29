@@ -118,8 +118,12 @@ let additions =
 -}
 
 
+-- let upstream =
+--       https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20210118/packages.dhall sha256:a59c5c93a68d5d066f3815a89f398bcf00e130a51cb185b2da29b20e2d8ae115
+
+-- https://github.com/purescript-contrib/purescript-arraybuffer-types/commit/bb88e5957cb006dd4eac339daa1f098c59fe3aba
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20200708/packages.dhall sha256:df5b0f1ae92d4401404344f4fb2a7a3089612c9f30066dcddf9eaea4fe780e29
+      https://raw.githubusercontent.com/purescript/package-sets/prepare-0.14/src/packages.dhall sha256:baefc2d9387175879c9576620d245e708b11cda41569aac9631b351cb0616d06
 
 let overrides = {=}
 

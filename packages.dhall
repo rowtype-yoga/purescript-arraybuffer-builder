@@ -117,16 +117,55 @@ let additions =
 -------------------------------
 -}
 
-
--- let upstream =
---       https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20210118/packages.dhall sha256:a59c5c93a68d5d066f3815a89f398bcf00e130a51cb185b2da29b20e2d8ae115
-
--- https://github.com/purescript-contrib/purescript-arraybuffer-types/commit/bb88e5957cb006dd4eac339daa1f098c59fe3aba
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/prepare-0.14/src/packages.dhall sha256:baefc2d9387175879c9576620d245e708b11cda41569aac9631b351cb0616d06
+     https://github.com/purescript/package-sets/releases/download/psc-0.14.1-20210427/packages.dhall sha256:edbb8f70232fb83895c7ce02f5d2b29f6ee1722f1a70fc58d3bc0ab0de18afe4
 
 let overrides = {=}
 
-let additions = {=}
+-- TODO Remove all of these additions when they are in package-sets for
+-- Purescript v0.14.
+let additions =
+  { arraybuffer =
+      { dependencies =
+          [ "effect"
+          , "arraybuffer-types"
+          , "maybe"
+          , "typelevel"
+          , "uint"
+          , "float32"
+          , "partial"
+          , "nullable"
+          , "functions"
+          ]
+      , repo =
+          "https://github.com/jacereda/purescript-arraybuffer.git"
+      , version =
+          "v8.0.3"
+      }
+  , float32 =
+      { dependencies =
+          [ "prelude"
+          ]
+      , repo =
+          "https://github.com/athanclark/purescript-float32.git"
+      , version =
+          "v0.2.0"
+      }
+  , uint =
+      { dependencies =
+          [ "effect"
+          , "quickcheck-laws"
+          , "console"
+          , "maybe"
+          , "math"
+          , "psci-support"
+          , "quickcheck"
+          ]
+      , repo =
+          "https://github.com/athanclark/purescript-float32.git"
+      , version =
+          "v5.1.4"
+      }
+  }
 
 in  upstream // overrides // additions

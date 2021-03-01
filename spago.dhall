@@ -2,7 +2,13 @@
 -}
 { name = "arraybuffer-builder"
 , dependencies =
-  [ "arraybuffer-types"
+  [ "effect"
+  , "float32"
+  , "maybe"
+  , "prelude"
+  , "transformers"
+  , "uint"
+  , "arraybuffer-types"
   , "arraybuffer"
   ]
 , packages = ./packages.dhall

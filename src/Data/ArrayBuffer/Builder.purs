@@ -16,6 +16,7 @@ module Data.ArrayBuffer.Builder
 , execPut
 , subBuilder
 , putArrayBuffer
+, putDataView
 , putUint8
 , putInt8
 , putUint16be
@@ -32,11 +33,16 @@ module Data.ArrayBuffer.Builder
 , putFloat64le
 , Builder
 , (<>>)
+, Bytes
+, toView
 , execBuilder
 , length
 , singleton
+, singleton_
 , cons
+, cons_
 , snoc
+, snoc_
 , encodeUint8
 , encodeInt8
 , encodeUint16be
@@ -60,7 +66,7 @@ import Control.Monad.Writer.Trans (WriterT, execWriterT, tell, lift)
 import Data.ArrayBuffer.ArrayBuffer as AB
 import Data.ArrayBuffer.DataView as DV
 import Data.ArrayBuffer.Typed as AT
-import Data.ArrayBuffer.Types (ArrayBuffer, Uint8Array)
+import Data.ArrayBuffer.Types (ArrayBuffer, Uint8Array, DataView, ByteLength)
 import Data.Float32 (Float32)
 import Data.Maybe (Maybe(..))
 import Data.UInt (UInt)
@@ -79,6 +85,15 @@ type PutM = WriterT Builder
 type Put = PutM Effect
 
 -- | Monoidal builder for `ArrayBuffer`s.
+-- |
+-- | We can add two types of things to the `Builder`: `ArrayBuffer`s and
+-- | `DataView`s.
+-- | We might prefer
+-- | to add a `DataView` to a `Builder` when we’re adding a large slice of data
+-- | from some other `ArrayBuffer`, so that we don’t
+-- | need an extra intermediate copy of the slice.
+-- | Our convention is that functions which add `DataView`s to
+-- | the `Builder` are suffixed with underscore (`_`).
 -- |
 -- | ### Left-associative `<>>` append operator
 -- |
@@ -114,7 +129,7 @@ type Put = PutM Effect
 -- | `snoc` case.
 -- |
 data Builder
-  = Node Builder ArrayBuffer Builder
+  = Node Builder Bytes Builder
   | Null
 
 instance semigroupBuilder :: Semigroup Builder where
@@ -134,36 +149,60 @@ infixl 5 append as <>>
 instance monoidBuilder :: Monoid Builder where
   mempty = Null
 
+-- | For distinguishing between `ArrayBuffer` and  `DataView`.
+data Bytes
+  = ByteBuff ArrayBuffer
+  | ByteView DataView
+
+toView :: Bytes -> DataView
+toView (ByteBuff ab) = DV.whole ab
+toView (ByteView dv) = dv
+
 -- | `Builder` is not an instance of `Foldable` because `Builder` is monomorphic.
-foldl :: forall b. (b -> ArrayBuffer -> b) -> b -> Builder -> b
-foldl f a Null = a
+foldl :: forall b. (b -> Bytes -> b) -> b -> Builder -> b
+foldl _ a Null = a
 foldl f a (Node l x r) = foldl f (f (foldl f a l) x) r
 
 -- | Monomorphic foldM copied from
 -- | [`Data.Foldable.foldM`](https://pursuit.purescript.org/packages/purescript-foldable-traversable/4.1.1/docs/Data.Foldable#v:foldM)
-foldM :: forall b m. (Monad m) => (b -> ArrayBuffer -> m b) -> b -> Builder -> m b
+foldM :: forall b m. (Monad m) => (b -> Bytes -> m b) -> b -> Builder -> m b
 foldM f a0 = foldl (\ma b -> ma >>= flip f b) (pure a0)
 
 -- | Construct a `Builder` with a single `ArrayBuffer`. *O(1)*
 singleton :: ArrayBuffer -> Builder
-singleton buf = Node Null buf Null
+singleton buf = Node Null (ByteBuff buf) Null
+
+-- | Construct a `Builder` with a single `DataView`. *O(1)*
+singleton_ :: DataView -> Builder
+singleton_ buf = Node Null (ByteView buf) Null
 
 -- | Prepend an `ArrayBuffer` to the beginning of the `Builder`. *O(1)*
 cons :: ArrayBuffer -> Builder -> Builder
-cons x bs = Node Null x bs
+cons x bs = Node Null (ByteBuff x) bs
+
+-- | Prepend a `DataView` to the beginning of the `Builder`. *O(1)*
+cons_ :: DataView -> Builder -> Builder
+cons_ x bs = Node Null (ByteView x) bs
 
 -- | Append an `ArrayBuffer` to the end of the `Builder`. *O(1)*
 snoc :: Builder -> ArrayBuffer -> Builder
-snoc bs x = Node bs x Null
+snoc bs x = Node bs (ByteBuff x) Null
+
+-- | Append a `DataView` to the end of the `Builder`. *O(1)*
+snoc_ :: Builder -> DataView -> Builder
+snoc_ bs x = Node bs (ByteView x) Null
 
 -- | Calculate the total byte length of the `Builder`. *O(n)*
-length :: Builder -> Int
-length bldr = foldl (\b a -> b + AB.byteLength a) 0 bldr
+length :: Builder -> ByteLength
+length bldr = foldl (\b a -> b + len a) 0 bldr
+  where
+    len (ByteBuff ab) = AB.byteLength ab
+    len (ByteView dv) = DV.byteLength dv
 
 -- | Build a single `ArrayBuffer` from a `Builder`. *O(n)*
 execBuilder :: forall m. (MonadEffect m) => Builder -> m ArrayBuffer
 execBuilder bldr = do
-  let buflen = foldl (\b a -> b + AB.byteLength a) 0 bldr
+  let buflen = length bldr
   -- Allocate the final ArrayBuffer
   buf <- liftEffect $ AB.empty buflen
   -- Then copy each ArrayBuffer into the final ArrayBuffer.
@@ -172,11 +211,16 @@ execBuilder bldr = do
   newview <- liftEffect (AT.whole buf :: Effect Uint8Array)
   _ <- foldM
     ( \offset a -> do
-        aview <- liftEffect (AT.whole a :: Effect Uint8Array)
+        aview <- liftEffect $ toUint8Array a
         _ <- liftEffect $ AT.setTyped newview (Just offset) aview
-        pure $ offset + AB.byteLength a
+        pure $ offset + AT.byteLength aview
     ) 0 bldr
   pure buf
+ where
+  toUint8Array :: Bytes -> Effect Uint8Array
+  toUint8Array (ByteBuff ab) = AT.whole ab
+  toUint8Array (ByteView dv) =
+    AT.part (DV.buffer dv) (DV.byteOffset dv) (DV.byteLength dv)
 
 -- | Build an `ArrayBuffer` with do-notation in any `MonadEffect`. *O(n)*
 execPutM :: forall m. (MonadEffect m) => PutM m Unit -> m ArrayBuffer
@@ -211,6 +255,10 @@ subBuilder = lift <<< execWriterT
 -- | Append an `ArrayBuffer` to the builder.
 putArrayBuffer :: forall m. (MonadEffect m) => ArrayBuffer -> PutM m Unit
 putArrayBuffer = tell <<< singleton
+
+-- | Append a `DataView` to the builder.
+putDataView :: forall m. (MonadEffect m) => DataView -> PutM m Unit
+putDataView = tell <<< singleton_
 
 -- | Serialize an 8-bit unsigned integer (byte) into a new `ArrayBuffer`.
 encodeUint8 :: forall m. (MonadEffect m) => UInt -> m ArrayBuffer
@@ -379,7 +427,7 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 -- left or right tree is a singleton. If that's not true, then in the
 -- unlikely worst case `append` might be *O(n)*.
 --
--- `Builder` is optimized what we consider to be normal usage, that is,
+-- `Builder` is optimized for what we consider to be normal usage, that is,
 -- `snoc`ing singleton elements to the end of the `Builder`.
 --
 -- If a Builder is built entirely by `snoc`ing, it will look like a
@@ -427,6 +475,7 @@ putFloat64le = putArrayBuffer <=< encodeFloat64le
 --
 -- One relatively cheap and simple performance improvement for this library would be to
 -- remove the Null constructor of `Builder` and instead use Javascript nulls.
+-- UPDATE Actually no, we need the Null constructor for the Monoid instance.
 --
 -- In the longer term, it might make sense to try to change the Builder so
 -- that it works like the

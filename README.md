@@ -30,8 +30,10 @@ All `ArrayBuffer` building must occur in `Effect`.
 
 Create a two-byte `arraybuffer :: ArrayBuffer` which contains the number *-10* encoded as big-endian 16-bit two’s-complement.
 ```purescript
+import Data.ArrayBuffer.Builder (execPut, putInt16be)
+
 do
-  arraybuffer <- execPut $ putInt16be (-10)
+  arraybuffer :: ArrayBuffer <- execPut $ putInt16be (-10)
 ```
 
 ### Serialize three floats
@@ -40,8 +42,10 @@ Create a 24-byte `arraybuffer :: ArrayBuffer` which contains three big-endian
 IEEE-754 double-precision floats.
 
 ```purescript
+import Data.ArrayBuffer.Builder (execPut, putFloat64be)
+
 do
-  arraybuffer <- execPut $ do
+  arraybuffer :: ArrayBuffer <- execPut $ do
     putFloat64be 1.0
     putFloat64be 2.0
     putFloat64be 3.0
@@ -49,22 +53,27 @@ do
 
 ### Serialize a `String` as UTF8
 
-Encode a `String` as UTF8 with a length prefix.
+Encode a `String` as UTF8 with a length prefix into our `Builder`.
 
 We give this as an example, rather than supporting it in the library, because
 it depends on
 [`Data.TextEncoding.encodeUtf8`](https://pursuit.purescript.org/packages/purescript-text-encoding/docs/Data.TextEncoding#v:encodeUtf8).
 
 ```purescript
+import Data.ArrayBuffer.Builder (PutM, putArrayBuffer, execPut)
+import Data.ArrayBuffer.Typed (buffer)
+import Data.TextEncoding (encodeUtf8)
+import Data.ArrayBuffer.ArrayBuffer (byteLength)
+
 putStringUtf8 :: forall m. (MonadEffect m) => String -> PutM m Unit
 putStringUtf8 s = do
-  let stringbuf = Data.ArrayBuffer.Typed.buffer $ Data.TextEncoding.encodeUtf8 s
+  let stringbuf = buffer $ encodeUtf8 s
   -- Put a 32-bit big-endian length prefix for the length of the utf8 string, in bytes.
-  putUint32be $ Data.Uint.fromInt $ Data.ArrayBuffer.byteLength stringbuf
+  putInt32be $ byteLength stringbuf
   putArrayBuffer stringbuf
 
 do
-  arraybuffer <- execPut $ putStringUtf8 "BLM"
+  arraybuffer :: ArrayBuffer <- execPut $ putStringUtf8 "BLM"
 ```
 
 ### Serialize an `Array Int`
@@ -77,15 +86,36 @@ from the Haskell
 library.
 
 ```purescript
+import Data.ArrayBuffer.Builder (execPut, putInt32be)
+import Data.Foldable (traverse_)
+import Data.Array (length)
+
 putArrayInt32 :: forall m. (MonadEffect m) => Array Int -> PutM m Unit
 putArrayInt32 xs = do
     -- Put a 64-bit big-endian length prefix for the length of the array.
-    putUint32be 0
-    putUint32be $ Data.Uint.fromInt $ Data.Array.length xs
+    putInt32be 0
+    putInt32be $ length xs
     traverse_ putInt32be xs
 
 do
   arraybuffer <- execPut $ putArrayInt32 [1,2,3]
+```
+
+
+## `unsafePerformEffect execPut`
+
+Dear computer programmer, you can call `execPut` inside `unsafePerformEffect`.
+
+The reason why this whole library is `Effect`ful is that `ArrayBuffer`s are mutable, so the `ArrayBuffer` library functions do everything in `Effect` to to confirm that any mutations are properly sequenced.
+
+However, all of the `put` functions in this library are actually side-effect free, so we can use `unsafePerformEffect` to tell the compiler to trust us that we don't perform any side-effects while we're building an `ArrayBuffer`.
+
+```purescript
+let serialized :: ArrayBuffer
+    serialized = unsafePerformEffect $ execPut do
+        putInt32be 3                                -- ✅ Good, this has no side-effects
+        putInt32be =<< getCurrentPosixTime          -- ❌ No don't do this
+        putArrayBuffer =<< readFileFromMyFilesystem -- ❌ No don’t do this either
 ```
 
 ## Deserialization
@@ -104,3 +134,4 @@ for a way to deserialize from `ArrayBuffer` back to Purescript data.
 * [__dynamic-buffers__](https://pursuit.purescript.org/packages/purescript-dynamic-buffers)
 * [__node-buffer__](https://pursuit.purescript.org/packages/purescript-node-buffer)
 * [__arraybuffer-class__](https://pursuit.purescript.org/packages/purescript-arraybuffer-class)
+* [__bytestrings__](https://pursuit.purescript.org/packages/purescript-bytestrings/)

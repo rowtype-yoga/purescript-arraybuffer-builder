@@ -14,7 +14,13 @@
         "output"
     ],
     "dependencies": {
-        "purescript-arraybuffer": "^v10.0.2",
-        "purescript-arraybuffer-types": "^v2.0.0"
+        "purescript-arraybuffer": "^v8.0.3",
+        "purescript-arraybuffer-types": "^v3.0.0",
+        "purescript-effect": "^v3.0.0",
+        "purescript-float32": "^v0.2.0",
+        "purescript-maybe": "^v5.0.0",
+        "purescript-prelude": "^v5.0.0",
+        "purescript-transformers": "^v5.0.0",
+        "purescript-uint": "^v5.1.4"
     }
 }

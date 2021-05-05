@@ -162,7 +162,7 @@ let additions =
           , "quickcheck"
           ]
       , repo =
-          "https://github.com/athanclark/purescript-float32.git"
+          "https://github.com/zaquest/purescript-uint.git"
       , version =
           "v5.1.4"
       }

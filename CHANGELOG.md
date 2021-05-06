@@ -1,8 +1,18 @@
-## v2.0.0 2021-04-29
+# Changelog
 
-Added the `Bytes` type.
+## v2.0.0 2021-07-19
 
-Spago build for PureScript v0.14.1.
+Build for PureScript v0.14.
+
+### Breaking Changes
+
+Previously we could only add `ArrayBuffer`s to the `Builder`,
+and now we can add either `ArrayBuffer` or `DataView` to the `Builder`,
+because we have added a `Bytes` type which distinguishes between `ArrayBuffer`
+and `DataView`. Because of this, we can avoid making an
+intermediate `ArrayBuffer` copy when adding a slice of an existing `ArrayBuffer`.
+
+Factored out the `Internal` module and added documentation.
 
 ## v1.1.0 2020-09-10
 

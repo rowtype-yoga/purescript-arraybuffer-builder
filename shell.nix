@@ -12,6 +12,8 @@ pkgs.mkShell {
     easy-ps.purs-0_14_1
     easy-ps.spago
     easy-ps.pulp
+    easy-ps.psc-package
+    # easy-ps.psc-publish
     pkgs.nodejs-14_x
     pkgs.nodePackages.bower
   ];

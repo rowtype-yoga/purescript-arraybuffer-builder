@@ -1,0 +1,8 @@
+{
+  "name": "purescript-arraybuffer-builder",
+  "set": "psc-0.14.1-20210429",
+  "source": "https://github.com/purescript/package-sets.git",
+  "depends": [
+    "prelude"
+  ]
+}

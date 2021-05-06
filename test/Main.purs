@@ -1,14 +1,16 @@
 module Test.Main where
 
-import Prelude (Unit, bind, pure, discard, map, negate, ($), (<$>), (=<<), (<>))
-import Data.ArrayBuffer.Types (ArrayBuffer,Uint8Array)
-import Data.ArrayBuffer.Typed as AT
+import Data.ArrayBuffer.Builder
+
+import Control.Monad.Writer.Trans (tell)
+import Data.ArrayBuffer.Builder.Internal (cons, encodeInt8, execBuilder, length, singleton, singleton_, (<>>))
 import Data.ArrayBuffer.DataView as DV
+import Data.ArrayBuffer.Typed as AT
+import Data.ArrayBuffer.Types (ArrayBuffer, Uint8Array)
 import Data.UInt as UInt
 import Effect (Effect)
+import Prelude (Unit, bind, pure, discard, map, negate, ($), (<$>), (=<<), (<>))
 import Test.Assert (assertEqual')
-import Data.ArrayBuffer.Builder
-import Control.Monad.Writer.Trans (tell)
 
 asBytes :: ArrayBuffer -> Effect (Array Int)
 asBytes x = do

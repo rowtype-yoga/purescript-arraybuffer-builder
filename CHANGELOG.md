@@ -1,8 +1,10 @@
-## v2.0.0 2021-04-29
+## v2.0.0 2021-04-06
 
-Added the `Bytes` type.
+Spago build for PureScript v0.14.
 
-Spago build for PureScript v0.14.1.
+Add the `Bytes` type.
+
+Factor out the `Internal` module and add documentation.
 
 ## v1.1.0 2020-09-10
 

@@ -3,6 +3,14 @@
   "set": "psc-0.14.1-20210429",
   "source": "https://github.com/purescript/package-sets.git",
   "depends": [
-    "prelude"
+    "prelude",
+    "effect",
+    "float32",
+    "maybe",
+    "prelude",
+    "transformers",
+    "uint",
+    "arraybuffer-types",
+    "arraybuffer"
   ]
 }

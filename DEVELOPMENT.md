@@ -33,8 +33,9 @@ The test dependencies are specified seperately in `test.dhall`.
 [Publishing with `spago`](https://github.com/purescript/spago#publish-my-library).
 
 ```
+[nix-shell:]$ bower install --save
 [nix-shell:]$ spago bump-version --no-dry-run major
-[nix-shell:]$ pulp publish
+[nix-shell:]$ pulp publish --no-push
 ```
 
 ## Bower

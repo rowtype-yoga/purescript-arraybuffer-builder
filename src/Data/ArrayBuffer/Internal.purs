@@ -2,7 +2,7 @@
 -- |
 -- | You probably don’t want to import anything from this module.
 -- |
--- | # Implementation Details
+-- | ## Implementation Details
 -- |
 -- | We want our `Builder` to be a data structure with
 -- | * *O(1)* monoid append

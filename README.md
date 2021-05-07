@@ -101,23 +101,6 @@ do
   arraybuffer <- execPut $ putArrayInt32 [1,2,3]
 ```
 
-
-## `unsafePerformEffect execPut`
-
-Dear computer programmer, you can call `execPut` inside `unsafePerformEffect`.
-
-The reason why this whole library is `Effect`ful is that `ArrayBuffer`s are mutable, so the `ArrayBuffer` library functions do everything in `Effect` to to confirm that any mutations are properly sequenced.
-
-However, all of the `put` functions in this library are actually side-effect free, so we can use `unsafePerformEffect` to tell the compiler to trust us that we don't perform any side-effects while we're building an `ArrayBuffer`.
-
-```purescript
-let serialized :: ArrayBuffer
-    serialized = unsafePerformEffect $ execPut do
-        putInt32be 3                                -- ✅ Good, this has no side-effects
-        putInt32be =<< getCurrentPosixTime          -- ❌ No don't do this
-        putArrayBuffer =<< readFileFromMyFilesystem -- ❌ No don’t do this either
-```
-
 ## Deserialization
 
 This package is only for writing `ArrayBuffer`s, not reading them.

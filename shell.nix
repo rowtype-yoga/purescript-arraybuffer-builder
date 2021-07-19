@@ -1,14 +1,21 @@
-{ pkgs ? import <nixpkgs> { } }:
+# Universal shell for PureScript repos
+# { pkgs ? import <nixpkgs> { }
+{ pkgs ? import (builtins.fetchGit {
+  # https://github.com/NixOS/nixpkgs/releases/tag/20.09
+  url = "https://github.com/nixos/nixpkgs/";
+  ref = "refs/tags/20.09";
+  rev = "cd63096d6d887d689543a0b97743d28995bc9bc3";
+  }) {}
+}:
 let
   easy-ps = import (builtins.fetchGit {
     url = "https://github.com/justinwoo/easy-purescript-nix.git";
-    ref = "master";
-    rev = "dae91f43317fd5ff207e11ea6bf4b6130e4ba9fc";
+    rev = "bbef4245cd6810ea84e97a47c801947bfec9fadc";
   }) { inherit pkgs; };
 in
 pkgs.mkShell {
-  buildInputs = [
-    easy-ps.purs-0_14_1
+  nativeBuildInputs = [
+    easy-ps.purs-0_14_3
     easy-ps.spago
     easy-ps.pulp
     easy-ps.psc-package

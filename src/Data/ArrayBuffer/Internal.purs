@@ -57,19 +57,20 @@
 -- | __bytestring-tree-builder__
 -- | which “according to the benchmarks … beats all the alternatives.”
 -- | However, we
--- | haven't chosen this implementation because it's fast, we've chosen
--- | this implementation because it's simple.
--- | If someone wants to create a fast PureScript ArrayBuffer serialization
+-- | haven’t chosen this implementation because it’s fast, we've chosen
+-- | this implementation because it’s simple.
+-- | If someone wants to create a fast PureScript `ArrayBuffer` serialization
 -- | library, then they can benchmark against this one to prove that the new
 -- | one is fast.
 -- |
 -- | One relatively cheap and simple performance improvement for this library would be to
--- | remove the Null constructor of `Builder` and instead use Javascript nulls.
--- | __UPDATE__ Actually no, we need the Null constructor for the Monoid instance.
+-- | remove the `Null` constructor of `Builder` and instead use Javascript nulls?
 -- |
 -- | In the longer term, it might make sense to try to change the `Builder` so
 -- | that it works like the
--- | https://hackage.haskell.org/package/bytestring/docs/Data-ByteString-Builder.html
+-- | https://hackage.haskell.org/package/bytestring/docs/Data-ByteString-Builder.html .
+-- | That’s the approach taken by
+-- | https://pursuit.purescript.org/packages/purescript-dynamic-buffers .
 -- |
 -- | Here are some benchmarks of different Haskell ByteString builders
 -- | https://github.com/haskell-perf/strict-bytestring-builders
@@ -77,27 +78,18 @@
 -- | We've tried to design the API for this library with minimal assumptions,
 -- | so that if we want to change the `Builder` implementation later then we can.
 -- |
--- | Another way this could go:
--- | https://kodimensional.dev/posts/2019-03-25-comonadic-builders
--- |
--- | Our convention is that functions which add `DataView`s to
--- | the `Builder` are suffixed with underscore (`_`).
--- |
 module Data.ArrayBuffer.Builder.Internal
 ( Builder(..)
 , (<>>)
-, Bytes(..)
+, DataBuff(..)
 , toView
 , execBuilder
 , length
 , foldl
 , foldM
 , singleton
-, singleton_
 , cons
-, cons_
 , snoc
-, snoc_
 , encodeUint8
 , encodeInt8
 , encodeUint16be
@@ -127,6 +119,19 @@ import Data.UInt (UInt)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 
+-- | For distinguishing between `ArrayBuffer` and `DataView`.
+data DataBuff
+  = Buff ArrayBuffer
+  | View DataView
+
+-- Concerning DataViews.
+-- https://v8.dev/blog/dataview
+
+ -- | View the contents of `DataBuff` as a `DataView`.
+toView :: DataBuff -> DataView
+toView (Buff ab) = DV.whole ab
+toView (View dv) = dv
+
 -- | Monoidal builder for `ArrayBuffer`s.
 -- |
 -- | We can add two types of things to the `Builder`:
@@ -138,7 +143,7 @@ import Effect.Class (class MonadEffect, liftEffect)
 -- | from some other `ArrayBuffer`, so that we don’t
 -- | need an extra intermediate copy of the slice.
 data Builder
-  = Node Builder Bytes Builder
+  = Node Builder DataBuff Builder
   | Null
 
 -- | ### Left-associative `<>>` append operator
@@ -193,57 +198,35 @@ infixl 5 append as <>>
 instance monoidBuilder :: Monoid Builder where
   mempty = Null
 
--- | For distinguishing between `ArrayBuffer` and `DataView`.
-data Bytes
-  = ByteBuff ArrayBuffer
-  | ByteView DataView
-
 -- | `Builder` is not an instance of `Foldable` because `Builder` is monomorphic.
-foldl :: forall b. (b -> Bytes -> b) -> b -> Builder -> b
+foldl :: forall b. (b -> DataBuff -> b) -> b -> Builder -> b
 foldl _ a Null = a
 foldl f a (Node l x r) = foldl f (f (foldl f a l) x) r
 
 -- | Monomorphic foldM copied from
 -- | [`Data.Foldable.foldM`](https://pursuit.purescript.org/packages/purescript-foldable-traversable/4.1.1/docs/Data.Foldable#v:foldM)
-foldM :: forall b m. (Monad m) => (b -> Bytes -> m b) -> b -> Builder -> m b
+foldM :: forall b m. (Monad m) => (b -> DataBuff -> m b) -> b -> Builder -> m b
 foldM f a0 = foldl (\ma b -> ma >>= flip f b) (pure a0)
 
--- | Construct a `Builder` with a single `ArrayBuffer`. *O(1)*
-singleton :: ArrayBuffer -> Builder
-singleton buf = Node Null (ByteBuff buf) Null
-
--- | Construct a `Builder` with a single `DataView`. *O(1)*
-singleton_ :: DataView -> Builder
-singleton_ buf = Node Null (ByteView buf) Null
+-- | Construct a `Builder` with a single `DataBuff`. *O(1)*
+singleton :: DataBuff -> Builder
+singleton buf = Node Null buf Null
 
 -- | Calculate the total byte length of the `Builder`, without actually
 -- | building it yet. *O(n)*
 length :: Builder -> ByteLength
 length bldr = foldl (\b a -> b + len a) 0 bldr
   where
-    len (ByteBuff ab) = AB.byteLength ab
-    len (ByteView dv) = DV.byteLength dv
+    len (Buff ab) = AB.byteLength ab
+    len (View dv) = DV.byteLength dv
 
- -- | View the contents of `Bytes` as a `DataView`.
-toView :: Bytes -> DataView
-toView (ByteBuff ab) = DV.whole ab
-toView (ByteView dv) = dv
+-- | Prepend a `DataBuff` to the beginning of the `Builder`. *O(1)*
+cons :: DataBuff -> Builder -> Builder
+cons x bs = Node Null x bs
 
--- | Prepend an `ArrayBuffer` to the beginning of the `Builder`. *O(1)*
-cons :: ArrayBuffer -> Builder -> Builder
-cons x bs = Node Null (ByteBuff x) bs
-
--- | Prepend a `DataView` to the beginning of the `Builder`. *O(1)*
-cons_ :: DataView -> Builder -> Builder
-cons_ x bs = Node Null (ByteView x) bs
-
--- | Append an `ArrayBuffer` to the end of the `Builder`. *O(1)*
-snoc :: Builder -> ArrayBuffer -> Builder
-snoc bs x = Node bs (ByteBuff x) Null
-
--- | Append a `DataView` to the end of the `Builder`. *O(1)*
-snoc_ :: Builder -> DataView -> Builder
-snoc_ bs x = Node bs (ByteView x) Null
+-- | Append a `DataBuff` to the end of the `Builder`. *O(1)*
+snoc :: Builder -> DataBuff -> Builder
+snoc bs x = Node bs x Null
 
 -- | Build a single `ArrayBuffer` from a `Builder`. *O(n)*
 execBuilder :: forall m. (MonadEffect m) => Builder -> m ArrayBuffer
@@ -263,9 +246,9 @@ execBuilder bldr = do
     ) 0 bldr
   pure buf
  where
-  toUint8Array :: Bytes -> Effect Uint8Array
-  toUint8Array (ByteBuff ab) = AT.whole ab
-  toUint8Array (ByteView dv) =
+  toUint8Array :: DataBuff -> Effect Uint8Array
+  toUint8Array (Buff ab) = AT.whole ab
+  toUint8Array (View dv) =
     AT.part (DV.buffer dv) (DV.byteOffset dv) (DV.byteLength dv)
 
 -- | Serialize an 8-bit unsigned integer (byte) into a new `ArrayBuffer`.

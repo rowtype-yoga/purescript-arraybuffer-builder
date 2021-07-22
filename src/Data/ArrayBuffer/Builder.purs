@@ -17,6 +17,7 @@ module Data.ArrayBuffer.Builder
 , subBuilder
 , putArrayBuffer
 , putDataView
+, putDataBuff
 , putUint8
 , putInt8
 , putUint16be
@@ -35,17 +36,11 @@ module Data.ArrayBuffer.Builder
 )
 where
 
-import Data.ArrayBuffer.Builder.Internal
-  ( Builder
-  , (<>>)
-  , length
-  )
-
-import Data.ArrayBuffer.Builder.Internal as Internal
-
 import Prelude
 
 import Control.Monad.Writer.Trans (WriterT, execWriterT, tell, lift)
+import Data.ArrayBuffer.Builder.Internal (Builder, DataBuff(..), length, toView, (<>>))
+import Data.ArrayBuffer.Builder.Internal as Internal
 import Data.ArrayBuffer.Types (ArrayBuffer, DataView)
 import Data.Float32 (Float32)
 import Data.UInt (UInt)
@@ -94,11 +89,15 @@ subBuilder = lift <<< execWriterT
 
 -- | Append an `ArrayBuffer` to the builder.
 putArrayBuffer :: forall m. (MonadEffect m) => ArrayBuffer -> PutM m Unit
-putArrayBuffer = tell <<< Internal.singleton
+putArrayBuffer = tell <<< Internal.singleton <<< Internal.Buff
 
 -- | Append a `DataView` to the builder.
 putDataView :: forall m. (MonadEffect m) => DataView -> PutM m Unit
-putDataView = tell <<< Internal.singleton_
+putDataView = tell <<< Internal.singleton <<< Internal.View
+
+-- | Append either an `ArrayBuffer` or a `DataView` to the builder.
+putDataBuff :: forall m. (MonadEffect m) => DataBuff -> PutM m Unit
+putDataBuff = tell <<< Internal.singleton
 
 -- | Append an 8-bit unsigned integer (byte) to the builder.
 putUint8 :: forall m. (MonadEffect m) => UInt -> PutM m Unit

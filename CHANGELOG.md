@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.0.0 2022-04-13
+
+Build for PureScript v0.15.
 ## v2.1.0 2021-07-22
 
 Renamed `Data.ArrayBuffer.Internal.Bytes` and exported

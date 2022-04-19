@@ -38,6 +38,7 @@ where
 
 import Prelude
 
+import Control.Monad.Rec.Class (class MonadRec)
 import Control.Monad.Writer.Trans (WriterT, execWriterT, tell, lift)
 import Data.ArrayBuffer.Builder.Internal (Builder, DataBuff(..), length, toView, (<>>))
 import Data.ArrayBuffer.Builder.Internal as Internal
@@ -58,11 +59,11 @@ type PutM = WriterT Builder
 -- | The `PutM` type reified to `Effect`, in other words `WriterT Builder Effect`.
 type Put = PutM Effect
 
--- | Build an `ArrayBuffer` with do-notation in any `MonadEffect`. *O(n)*
-execPutM :: forall m. MonadEffect m => PutM m Unit -> m ArrayBuffer
+-- | Build an `ArrayBuffer` with do-notation in any `MonadEffect`. *O(n)* Stack-safe.
+execPutM :: forall m. MonadEffect m => MonadRec m => PutM m Unit -> m ArrayBuffer
 execPutM = Internal.execBuilder <=< execWriterT
 
--- | Build an `ArrayBuffer` with do-notation in `Effect`. *O(n)*
+-- | Build an `ArrayBuffer` with do-notation in `Effect`. *O(n)* Stack-safe.
 execPut :: Put Unit -> Effect ArrayBuffer
 execPut = execPutM
 

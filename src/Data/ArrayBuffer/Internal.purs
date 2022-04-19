@@ -109,12 +109,16 @@ where
 
 import Prelude
 
+import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Data.ArrayBuffer.ArrayBuffer as AB
 import Data.ArrayBuffer.DataView as DV
 import Data.ArrayBuffer.Typed as AT
 import Data.ArrayBuffer.Types (ArrayBuffer, ByteLength, DataView, Uint8Array)
 import Data.Float32 (Float32)
+import Data.Identity (Identity)
+import Data.List (List(..), uncons, (:))
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.UInt (UInt)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -198,15 +202,27 @@ infixl 5 append as <>>
 instance monoidBuilder :: Monoid Builder where
   mempty = Null
 
--- | `Builder` is not an instance of `Foldable` because `Builder` is monomorphic.
-foldl :: forall b. (b -> DataBuff -> b) -> b -> Builder -> b
-foldl _ a Null = a
-foldl f a (Node l x r) = foldl f (f (foldl f a l) x) r
+-- | Stack-safe `foldl` over a `Builder`. *O(n)*
+foldl :: forall a. (a -> DataBuff -> a) -> a -> Builder -> a
+foldl f a0 b = (unwrap :: Identity a -> a) $ foldM (\a' b' -> pure (f a' b')) a0 b
 
--- | Monomorphic foldM copied from
--- | [`Data.Foldable.foldM`](https://pursuit.purescript.org/packages/purescript-foldable-traversable/4.1.1/docs/Data.Foldable#v:foldM)
-foldM :: forall b m. (Monad m) => (b -> DataBuff -> m b) -> b -> Builder -> m b
-foldM f a0 = foldl (\ma b -> ma >>= flip f b) (pure a0)
+-- | Stack-safe `foldM` over a `Builder`. *O(n)*.
+foldM :: forall m a. MonadRec m => (a -> DataBuff -> m a) -> a -> Builder -> m a
+-- The Art of Computer Programming 2.3.1
+-- Inorder traversal using a stack
+-- https://yuyuan.org/MorrisAlgorithm/
+foldM f a0 b = tailRecM outer {p: b, stack: Nil, accum: a0}
+  where
+  outer {p,stack,accum} = do
+    stack' <- tailRecM inner {p_:p,stack_:stack}
+    case uncons stack' of
+      Nothing -> pure $ Done accum
+      Just {head: Node _ x r, tail} -> do
+        accum' <- f accum x
+        pure $ Loop {p: r, stack: tail, accum: accum'}
+      Just {head:Null} -> pure $ Done accum
+  inner {p_:Null,stack_} = pure $ Done stack_
+  inner {p_: n@(Node l _ _), stack_} = pure $ Loop {p_: l, stack_: n:stack_}
 
 -- | Construct a `Builder` with a single `DataBuff`. *O(1)*
 singleton :: DataBuff -> Builder
@@ -229,7 +245,7 @@ snoc :: Builder -> DataBuff -> Builder
 snoc bs x = Node bs x Null
 
 -- | Build a single `ArrayBuffer` from a `Builder`. *O(n)*
-execBuilder :: forall m. (MonadEffect m) => Builder -> m ArrayBuffer
+execBuilder :: forall m. MonadEffect m => MonadRec m => Builder -> m ArrayBuffer
 execBuilder bldr = do
   let buflen = length bldr
   -- Allocate the final ArrayBuffer

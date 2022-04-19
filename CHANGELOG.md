@@ -1,8 +1,12 @@
 # Changelog
 
-## v3.0.0 2022-04-13
+## v3.0.0 2022-04-21
 
 Build for PureScript v0.15.
+
+Added `MonadRec` constraint to `execPut`, `execPutM`, `foldl`, `foldM`,
+they are now stack-safe.
+
 ## v2.1.0 2021-07-22
 
 Renamed `Data.ArrayBuffer.Internal.Bytes` and exported

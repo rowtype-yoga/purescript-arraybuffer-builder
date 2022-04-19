@@ -59,7 +59,7 @@ type PutM = WriterT Builder
 type Put = PutM Effect
 
 -- | Build an `ArrayBuffer` with do-notation in any `MonadEffect`. *O(n)*
-execPutM :: forall m. (MonadEffect m) => PutM m Unit -> m ArrayBuffer
+execPutM :: forall m. MonadEffect m => PutM m Unit -> m ArrayBuffer
 execPutM = Internal.execBuilder <=< execWriterT
 
 -- | Build an `ArrayBuffer` with do-notation in `Effect`. *O(n)*
@@ -84,73 +84,73 @@ execPut = execPutM
 -- |   putInt32be $ length messageBuilder
 -- |   tell messageBuilder
 -- | ```
-subBuilder :: forall m. (MonadEffect m) => PutM m Unit -> PutM m Builder
+subBuilder :: forall m. Monad m => PutM m Unit -> PutM m Builder
 subBuilder = lift <<< execWriterT
 
 -- | Append an `ArrayBuffer` to the builder.
-putArrayBuffer :: forall m. (MonadEffect m) => ArrayBuffer -> PutM m Unit
+putArrayBuffer :: forall m. Monad m => ArrayBuffer -> PutM m Unit
 putArrayBuffer = tell <<< Internal.singleton <<< Internal.Buff
 
 -- | Append a `DataView` to the builder.
-putDataView :: forall m. (MonadEffect m) => DataView -> PutM m Unit
+putDataView :: forall m. Monad m => DataView -> PutM m Unit
 putDataView = tell <<< Internal.singleton <<< Internal.View
 
 -- | Append either an `ArrayBuffer` or a `DataView` to the builder.
-putDataBuff :: forall m. (MonadEffect m) => DataBuff -> PutM m Unit
+putDataBuff :: forall m. Monad m => DataBuff -> PutM m Unit
 putDataBuff = tell <<< Internal.singleton
 
 -- | Append an 8-bit unsigned integer (byte) to the builder.
-putUint8 :: forall m. (MonadEffect m) => UInt -> PutM m Unit
+putUint8 :: forall m. MonadEffect m => UInt -> PutM m Unit
 putUint8 = putArrayBuffer <=< Internal.encodeUint8
 
 -- | Append an 8-bit two’s-complement signed integer (char) to the builder.
-putInt8 :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt8 :: forall m. MonadEffect m => Int -> PutM m Unit
 putInt8 = putArrayBuffer <=< Internal.encodeInt8
 
 -- | Append a 16-bit big-endian unsigned integer to the builder.
-putUint16be :: forall m. (MonadEffect m) => UInt -> PutM m Unit
+putUint16be :: forall m. MonadEffect m => UInt -> PutM m Unit
 putUint16be = putArrayBuffer <=< Internal.encodeUint16be
 
 -- | Append a 16-bit little-endian unsigned integer to the builder.
-putUint16le :: forall m. (MonadEffect m) => UInt -> PutM m Unit
+putUint16le :: forall m. MonadEffect m => UInt -> PutM m Unit
 putUint16le = putArrayBuffer <=< Internal.encodeUint16le
 
 -- | Append a 16-bit big-endian two’s-complement signed integer to the builder.
-putInt16be :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt16be :: forall m. MonadEffect m => Int -> PutM m Unit
 putInt16be = putArrayBuffer <=< Internal.encodeInt16be
 
 -- | Append a 16-bit little-endian two’s-complement signed integer to the builder.
-putInt16le :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt16le :: forall m. MonadEffect m => Int -> PutM m Unit
 putInt16le = putArrayBuffer <=< Internal.encodeInt16le
 
 -- | Append a 32-bit big-endian unsigned integer to the builder.
-putUint32be :: forall m. (MonadEffect m) => UInt -> PutM m Unit
+putUint32be :: forall m. MonadEffect m => UInt -> PutM m Unit
 putUint32be = putArrayBuffer <=< Internal.encodeUint32be
 
 -- | Append a 32-bit little-endian unsigned integer to the builder.
-putUint32le :: forall m. (MonadEffect m) => UInt -> PutM m Unit
+putUint32le :: forall m. MonadEffect m => UInt -> PutM m Unit
 putUint32le = putArrayBuffer <=< Internal.encodeUint32le
 
 -- | Append a 32-bit big-endian two’s-complement signed integer to the builder.
-putInt32be :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt32be :: forall m. MonadEffect m => Int -> PutM m Unit
 putInt32be = putArrayBuffer <=< Internal.encodeInt32be
 
 -- | Append a 32-bit little-endian two’s-complement signed integer to the builder.
-putInt32le :: forall m. (MonadEffect m) => Int -> PutM m Unit
+putInt32le :: forall m. MonadEffect m => Int -> PutM m Unit
 putInt32le = putArrayBuffer <=< Internal.encodeInt32le
 
 -- | Append a 32-bit big-endian IEEE single-precision float to the builder.
-putFloat32be :: forall m. (MonadEffect m) => Float32 -> PutM m Unit
+putFloat32be :: forall m. MonadEffect m => Float32 -> PutM m Unit
 putFloat32be = putArrayBuffer <=< Internal.encodeFloat32be
 
 -- | Append a 32-bit little-endian IEEE single-precision float to the builder.
-putFloat32le :: forall m. (MonadEffect m) => Float32 -> PutM m Unit
+putFloat32le :: forall m. MonadEffect m => Float32 -> PutM m Unit
 putFloat32le = putArrayBuffer <=< Internal.encodeFloat32le
 
 -- | Append a 64-bit big-endian IEEE double-precision float to the builder.
-putFloat64be :: forall m. (MonadEffect m) => Number -> PutM m Unit
+putFloat64be :: forall m. MonadEffect m => Number -> PutM m Unit
 putFloat64be = putArrayBuffer <=< Internal.encodeFloat64be
 
 -- | Append a 64-bit little-endian IEEE double-precision float to the builder.
-putFloat64le :: forall m. (MonadEffect m) => Number -> PutM m Unit
+putFloat64le :: forall m. MonadEffect m => Number -> PutM m Unit
 putFloat64le = putArrayBuffer <=< Internal.encodeFloat64le

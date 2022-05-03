@@ -14,13 +14,13 @@
         "output"
     ],
     "dependencies": {
-        "purescript-arraybuffer": "^v11.0.1",
-        "purescript-arraybuffer-types": "^v3.0.0",
-        "purescript-effect": "^v3.0.0",
-        "purescript-float32": "^v1.0.0",
-        "purescript-maybe": "^v5.0.0",
-        "purescript-prelude": "^v5.0.1",
-        "purescript-transformers": "^v5.1.0",
-        "purescript-uint": "^v6.0.3"
+        "purescript-arraybuffer": "master",
+        "purescript-arraybuffer-types": "main",
+        "purescript-effect": "master",
+        "purescript-float32": "master",
+        "purescript-maybe": "master",
+        "purescript-prelude": "master",
+        "purescript-transformers": "master",
+        "purescript-uint": "main"
     }
 }

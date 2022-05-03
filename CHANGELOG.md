@@ -1,6 +1,6 @@
 # Changelog
 
-## v3.0.0 2022-04-21
+## v3.0.0 2022-05-04
 
 Build for PureScript v0.15.
 

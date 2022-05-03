@@ -2,7 +2,6 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Rec.Class (Step(..), tailRecM)
 import Control.Monad.Writer.Trans (tell)
 import Data.Array (foldRecM)
 import Data.Array as Array

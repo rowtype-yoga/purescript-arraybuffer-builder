@@ -79,33 +79,32 @@
 -- | so that if we want to change the `Builder` implementation later then we can.
 -- |
 module Data.ArrayBuffer.Builder.Internal
-( Builder(..)
-, (<>>)
-, DataBuff(..)
-, toView
-, execBuilder
-, length
-, foldl
-, foldM
-, singleton
-, cons
-, snoc
-, encodeUint8
-, encodeInt8
-, encodeUint16be
-, encodeUint16le
-, encodeInt16be
-, encodeInt16le
-, encodeUint32be
-, encodeUint32le
-, encodeInt32be
-, encodeInt32le
-, encodeFloat32be
-, encodeFloat32le
-, encodeFloat64be
-, encodeFloat64le
-)
-where
+  ( Builder(..)
+  , (<>>)
+  , DataBuff(..)
+  , toView
+  , execBuilder
+  , length
+  , foldl
+  , foldM
+  , singleton
+  , cons
+  , snoc
+  , encodeUint8
+  , encodeInt8
+  , encodeUint16be
+  , encodeUint16le
+  , encodeInt16be
+  , encodeInt16le
+  , encodeUint32be
+  , encodeUint32le
+  , encodeInt32be
+  , encodeInt32le
+  , encodeFloat32be
+  , encodeFloat32le
+  , encodeFloat64be
+  , encodeFloat64le
+  ) where
 
 import Prelude
 
@@ -131,7 +130,7 @@ data DataBuff
 -- Concerning DataViews.
 -- https://v8.dev/blog/dataview
 
- -- | View the contents of `DataBuff` as a `DataView`.
+-- | View the contents of `DataBuff` as a `DataView`.
 toView :: DataBuff -> DataView
 toView (Buff ab) = DV.whole ab
 toView (View dv) = dv
@@ -191,11 +190,12 @@ instance semigroupBuilder :: Semigroup Builder where
   append Null r = r
   append l (Node Null rx rr) = Node l rx rr -- this is the snoc case
   append (Node ll lx Null) r = Node ll lx r -- found the rightmost Null
-                                            -- of the left tree
+  -- of the left tree
   append (Node ll lx lr) r = Node ll lx $ append lr r -- search down the right
-                                                      -- side of the left tree
-                                                      -- to find the rightmost
-                                                      -- Null
+
+-- side of the left tree
+-- to find the rightmost
+-- Null
 
 infixl 5 append as <>>
 
@@ -211,18 +211,18 @@ foldM :: forall m a. MonadRec m => (a -> DataBuff -> m a) -> a -> Builder -> m a
 -- The Art of Computer Programming 2.3.1
 -- Inorder traversal using a stack
 -- https://yuyuan.org/MorrisAlgorithm/
-foldM f a0 b = tailRecM outer {p: b, stack: Nil, accum: a0}
+foldM f a0 b = tailRecM outer { p: b, stack: Nil, accum: a0 }
   where
-  outer {p,stack,accum} = do
-    stack' <- tailRecM inner {p_:p,stack_:stack}
+  outer { p, stack, accum } = do
+    stack' <- tailRecM inner { p_: p, stack_: stack }
     case uncons stack' of
       Nothing -> pure $ Done accum
-      Just {head: Node _ x r, tail} -> do
+      Just { head: Node _ x r, tail } -> do
         accum' <- f accum x
-        pure $ Loop {p: r, stack: tail, accum: accum'}
-      Just {head:Null} -> pure $ Done accum
-  inner {p_:Null,stack_} = pure $ Done stack_
-  inner {p_: n@(Node l _ _), stack_} = pure $ Loop {p_: l, stack_: n:stack_}
+        pure $ Loop { p: r, stack: tail, accum: accum' }
+      Just { head: Null } -> pure $ Done accum
+  inner { p_: Null, stack_ } = pure $ Done stack_
+  inner { p_: n@(Node l _ _), stack_ } = pure $ Loop { p_: l, stack_: n : stack_ }
 
 -- | Construct a `Builder` with a single `DataBuff`. *O(1)*
 singleton :: DataBuff -> Builder
@@ -233,8 +233,8 @@ singleton buf = Node Null buf Null
 length :: Builder -> ByteLength
 length bldr = foldl (\b a -> b + len a) 0 bldr
   where
-    len (Buff ab) = AB.byteLength ab
-    len (View dv) = DV.byteLength dv
+  len (Buff ab) = AB.byteLength ab
+  len (View dv) = DV.byteLength dv
 
 -- | Prepend a `DataBuff` to the beginning of the `Builder`. *O(1)*
 cons :: DataBuff -> Builder -> Builder
@@ -259,9 +259,11 @@ execBuilder bldr = do
         aview <- liftEffect $ toUint8Array a
         _ <- liftEffect $ AT.setTyped newview (Just offset) aview
         pure $ offset + AT.byteLength aview
-    ) 0 bldr
+    )
+    0
+    bldr
   pure buf
- where
+  where
   toUint8Array :: DataBuff -> Effect Uint8Array
   toUint8Array (Buff ab) = AT.whole ab
   toUint8Array (View dv) =

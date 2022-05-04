@@ -10,31 +10,30 @@
 -- | [`Data.ArrayBuffer.ArrayBuffer`](https://pursuit.purescript.org/packages/purescript-arraybuffer/docs/Data.ArrayBuffer.ArrayBuffer)
 -- | in package __purescript-arraybuffer__.
 module Data.ArrayBuffer.Builder
-( PutM
-, Put
-, execPutM
-, execPut
-, subBuilder
-, putArrayBuffer
-, putDataView
-, putDataBuff
-, putUint8
-, putInt8
-, putUint16be
-, putUint16le
-, putInt16be
-, putInt16le
-, putUint32be
-, putUint32le
-, putInt32be
-, putInt32le
-, putFloat32be
-, putFloat32le
-, putFloat64be
-, putFloat64le
-, module Data.ArrayBuffer.Builder.Internal
-)
-where
+  ( PutM
+  , Put
+  , execPutM
+  , execPut
+  , subBuilder
+  , putArrayBuffer
+  , putDataView
+  , putDataBuff
+  , putUint8
+  , putInt8
+  , putUint16be
+  , putUint16le
+  , putInt16be
+  , putInt16le
+  , putUint32be
+  , putUint32le
+  , putInt32be
+  , putInt32le
+  , putFloat32be
+  , putFloat32le
+  , putFloat64be
+  , putFloat64le
+  , module Data.ArrayBuffer.Builder.Internal
+  ) where
 
 import Prelude
 

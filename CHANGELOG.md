@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.0.1 2022-05-04
+
+CI repair. Change `test.dhall` to `spago-dev.dhall`.
+
 ## v3.0.0 2022-05-04
 
 Build for PureScript v0.15.

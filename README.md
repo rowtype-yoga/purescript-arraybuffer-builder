@@ -135,5 +135,5 @@ for a way to deserialize from `ArrayBuffer` back to Purescript data.
 To run the tests,
 
 ```shell
-spago -x test.dhall test
+spago -x spago-dev.dhall test
 ```

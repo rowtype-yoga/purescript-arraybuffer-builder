@@ -129,6 +129,7 @@ for a way to deserialize from `ArrayBuffer` back to Purescript data.
 * [__node-buffer__](https://pursuit.purescript.org/packages/purescript-node-buffer)
 * [__arraybuffer-class__](https://pursuit.purescript.org/packages/purescript-arraybuffer-class)
 * [__bytestrings__](https://pursuit.purescript.org/packages/purescript-bytestrings/)
+* [__array-builder__](https://pursuit.purescript.org/packages/purescript-array-builder)
 
 ## Development
 

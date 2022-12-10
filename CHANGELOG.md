@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.1.0 2022-12-10
+
+- Transfer to __rowtype-yoga__.
+- Docs.
+
 ## v3.0.1 2022-05-04
 
 CI repair. Change `test.dhall` to `spago-dev.dhall`.

@@ -5,14 +5,20 @@ import Prelude
 import Control.Monad.Writer.Trans (tell)
 import Data.Array (foldRecM)
 import Data.Array as Array
-import Data.ArrayBuffer.Builder (Builder, DataBuff(..), PutM, execPut, putInt16be, putInt32le, putInt8, subBuilder)
+import Data.ArrayBuffer.ArrayBuffer (byteLength)
+import Data.ArrayBuffer.Builder (Builder, DataBuff(..), PutM, execPut, putArrayBuffer, putInt16be, putInt32be, putInt32le, putInt8, subBuilder)
 import Data.ArrayBuffer.Builder.Internal (cons, encodeInt8, execBuilder, length, singleton, (<>>))
 import Data.ArrayBuffer.DataView as DV
+import Data.ArrayBuffer.Typed (buffer)
 import Data.ArrayBuffer.Typed as AT
-import Data.ArrayBuffer.Types (ArrayBuffer, Uint8Array)
+import Data.ArrayBuffer.Typed as AV
+import Data.ArrayBuffer.Types (ArrayBuffer, Uint8Array, Int8Array)
 import Data.UInt as UInt
 import Effect (Effect)
+import Effect.Class (class MonadEffect, liftEffect)
 import Test.Assert (assertEqual')
+import Web.Encoding.TextEncoder (encode)
+import Web.Encoding.TextEncoder as TextEncoder
 
 asBytes :: ArrayBuffer -> Effect (Array Int)
 asBytes x = do
@@ -120,3 +126,21 @@ main = do
   let stackblower = Array.replicate 20000 2
   putTest "Stack test" stackblower do
     foldRecM (\_ x -> putInt8 x) unit stackblower
+
+  do
+    let
+      putStringUtf8 :: forall m. MonadEffect m => String -> PutM m Unit
+      putStringUtf8 s = do
+        textEncoder <- liftEffect TextEncoder.new
+        let stringbuf = buffer $ encode s textEncoder
+        -- Put a 32-bit big-endian length prefix for the length of the utf8 string, in bytes.
+        putInt32be $ byteLength stringbuf
+        putArrayBuffer stringbuf
+
+    arraybuffer :: ArrayBuffer <- execPut $ putStringUtf8 "🦝"
+    view :: Int8Array <- AV.whole arraybuffer
+    viewarray <- AV.toArray view
+    assertEqual' "utf-8 test"
+      { actual: viewarray
+      , expected: [ 0, 0, 0, 4, -16, -97, -90, -99 ]
+      }

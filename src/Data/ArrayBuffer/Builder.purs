@@ -5,10 +5,10 @@
 -- | Writing to an `ArrayBuffer` is an `Effect`ful activity, so most
 -- | functions in this module must be run in a `MonadEffect` context.
 -- |
--- | For operations for working with `ArrayBuffer`, see
+-- | For other operations for working with `ArrayBuffer`, see
 -- | module
 -- | [`Data.ArrayBuffer.ArrayBuffer`](https://pursuit.purescript.org/packages/purescript-arraybuffer/docs/Data.ArrayBuffer.ArrayBuffer)
--- | in package __purescript-arraybuffer__.
+-- | in package __arraybuffer__.
 module Data.ArrayBuffer.Builder
   ( PutM
   , Put

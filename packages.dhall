@@ -117,8 +117,8 @@ let additions =
 -------------------------------
 -}
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.0-20220502/src/packages.dhall
-        sha256:38d347aeba9fe6359c208abe87a5cecf1ffb14294f11ad19664ae35c59b6e29a
+      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.4-20221209/src/packages.dhall
+        sha256:b55c24bf585df4041ae6e87124cab7b35d474a9a77c9c3862ee6bf1dae618d72
 
 let overrides = {=}
 

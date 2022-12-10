@@ -15,5 +15,6 @@ in conf //
   , dependencies = conf.dependencies #
     [ "assert"
     , "arrays"
+    , "web-encoding"
     ]
   }

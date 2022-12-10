@@ -1,7 +1,8 @@
 # purescript-arraybuffer-builder
 
-[![CI](https://github.com/jamesdbrock/purescript-arraybuffer-builder/workflows/CI/badge.svg?branch=master)](https://github.com/jamesdbrock/purescript-arraybuffer-builder/actions)
+[![CI](https://github.com/rowtype-yoga/purescript-arraybuffer-builder/workflows/CI/badge.svg?branch=master)](https://github.com/rowtype-yoga/purescript-arraybuffer-builder/actions)
 [![Pursuit](http://pursuit.purescript.org/packages/purescript-arraybuffer-builder/badge)](http://pursuit.purescript.org/packages/purescript-arraybuffer-builder/)
+[![Maintainer: jamesdbrock](https://img.shields.io/badge/maintainer-jamesdbrock-teal.svg)](https://github.com/jamesdbrock)
 
 
 [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
@@ -50,23 +51,23 @@ Encode a `String` as UTF8 with a length prefix into our `Builder`.
 
 We give this as an example, rather than supporting it in the library, because
 it depends on
-[`Data.TextEncoding.encodeUtf8`](https://pursuit.purescript.org/packages/purescript-text-encoding/docs/Data.TextEncoding#v:encodeUtf8).
+[`Web.Encoding.TextEncoder`](https://pursuit.purescript.org/packages/purescript-web-encoding/docs/Web.Encoding.TextEncoder).
 
 ```purescript
 import Data.ArrayBuffer.Builder (PutM, putArrayBuffer, execPut)
 import Data.ArrayBuffer.Typed (buffer)
-import Data.TextEncoding (encodeUtf8)
 import Data.ArrayBuffer.ArrayBuffer (byteLength)
+import Web.Encoding.TextEncoder (new, textEncoder)
 
 putStringUtf8 :: forall m. MonadEffect m => String -> PutM m Unit
 putStringUtf8 s = do
-  let stringbuf = buffer $ encodeUtf8 s
-  -- Put a 32-bit big-endian length prefix for the length of the utf8 string, in bytes.
+  textEncoder <- liftEffect new
+  let stringbuf = buffer $ encode s textEncoder
+  -- Put a 32-bit big-endian length for the utf8 string, in bytes.
   putInt32be $ byteLength stringbuf
   putArrayBuffer stringbuf
 
-do
-  arraybuffer :: ArrayBuffer <- execPut $ putStringUtf8 "BLM"
+arraybuffer :: ArrayBuffer <- execPut $ putStringUtf8 "🦝"
 ```
 
 ### Serialize an `Array Int`
@@ -85,7 +86,7 @@ import Data.Array (length)
 
 putArrayInt32 :: forall m. MonadEffect m => Array Int -> PutM m Unit
 putArrayInt32 xs = do
-    -- Put a 64-bit big-endian length prefix for the length of the array.
+    -- Put a 64-bit big-endian length prefix for the array.
     putInt32be 0
     putInt32be $ length xs
     traverse_ putInt32be xs
@@ -105,7 +106,7 @@ import Data.Array (foldRecM)
 
 putArrayInt32 :: forall m. MonadEffect m => MonadRec m => Array Int -> PutM m Unit
 putArrayInt32 xs = do
-    -- Put a 64-bit big-endian length prefix for the length of the array.
+    -- Put a 64-bit big-endian length prefix for the array.
     putInt32be 0
     putInt32be $ length xs
     foldRecM (\_ x -> putInt32be x) unit xs

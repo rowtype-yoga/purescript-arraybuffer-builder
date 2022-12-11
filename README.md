@@ -121,7 +121,7 @@ of the `PutM` builder expression are stack-safe.
 
 This package is only for writing `ArrayBuffer`s, not reading them.
 See
-[__purescript-parsing-dataview__](https://pursuit.purescript.org/packages/purescript-parsing-dataview/)
+[__parsing-dataview__](https://pursuit.purescript.org/packages/purescript-parsing-dataview/)
 for a way to deserialize from `ArrayBuffer` back to Purescript data.
 
 ## Alternative packages for serializing to an `ArrayBuffer`

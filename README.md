@@ -54,17 +54,20 @@ it depends on
 [`Web.Encoding.TextEncoder`](https://pursuit.purescript.org/packages/purescript-web-encoding/docs/Web.Encoding.TextEncoder).
 
 ```purescript
-import Data.ArrayBuffer.Builder (PutM, putArrayBuffer, execPut)
+import Effect.Class (class MonadEffect, liftEffect)
+import Data.UInt (fromInt)
+import Data.ArrayBuffer.Types (ArrayBuffer(..))
+import Data.ArrayBuffer.Builder (PutM, putArrayBuffer, execPut, putUint32be)
 import Data.ArrayBuffer.Typed (buffer)
 import Data.ArrayBuffer.ArrayBuffer (byteLength)
-import Web.Encoding.TextEncoder (new, textEncoder)
+import Web.Encoding.TextEncoder (new, TextEncoder, encode)
 
 putStringUtf8 :: forall m. MonadEffect m => String -> PutM m Unit
 putStringUtf8 s = do
   textEncoder <- liftEffect new
   let stringbuf = buffer $ encode s textEncoder
   -- Put a 32-bit big-endian length for the utf8 string, in bytes.
-  putInt32be $ byteLength stringbuf
+  putUint32be $ fromInt $ byteLength stringbuf
   putArrayBuffer stringbuf
 
 arraybuffer :: ArrayBuffer <- execPut $ putStringUtf8 "🦝"
